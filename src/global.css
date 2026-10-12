@@ -1,0 +1,100 @@
+/* 레이아웃 전용 최소 CSS. 색상·타이포는 TDS 토큰/컴포넌트에서 가져옵니다. */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+/*
+ * 눌림 강도 완화.
+ * TDS Button / ListRow는 눌렀을 때 약 0.96배로 줄어드는데, 넓은 행에서는 너무 크게 눌려 보여서
+ * 기본 눌림 효과를 끄고 아주 약하게(0.99배) 눌리도록 덮어써요.
+ */
+.soft-press [data-tds-mobile-component='Button'],
+.soft-press li > div:first-child {
+  transform: none !important;
+  transition: transform 120ms ease-out;
+}
+.soft-press [data-tds-mobile-component='Button']:active,
+.soft-press li > div:first-child:active {
+  transform: scale(0.99) !important;
+}
+
+/*
+ * 목록 행(ListRow)은 줄어들지 않고, 눌렀을 때 회색이 행 전체(좌우 끝까지)를 칸 모서리 없이 채워요.
+ * 줄어들면 글자가 안쪽으로 밀리고 둥근 회색 칸이 구분선과 어긋나 보여서요.
+ */
+.soft-press li > div:first-child:active {
+  transform: none !important;
+}
+.soft-press li > div:first-child > div:first-child {
+  border-radius: 0 !important;
+}
+
+/*
+ * 마우스로 눌렀을 때 브라우저가 붙이는 기본 포커스 테두리(크롬: 검정, 그 외: 베이지)를 없애요.
+ * 키보드로 이동할 때(:focus-visible)는 접근성을 위해 파란 테두리를 보여줘요.
+ */
+.soft-press button:focus:not(:focus-visible),
+.soft-press [role='button']:focus:not(:focus-visible),
+.soft-press [role='radio']:focus:not(:focus-visible),
+.soft-press [role='switch']:focus:not(:focus-visible) {
+  outline: none;
+}
+.soft-press button:focus-visible,
+.soft-press [role='button']:focus-visible {
+  outline: 2px solid var(--adaptiveBlue500);
+  outline-offset: 2px;
+}
+
+/*
+ * 스크롤바: 화살표와 뒷 배경 없이, 연한 회색 선 하나만 보여줘요. (세로·가로 모두)
+ * 굵기는 4px이고, 8px 칸 안에 투명 테두리로 여백을 줘서 가늘게 보이게 했어요.
+ */
+* {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--adaptiveGrey300, #d1d6db) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background: transparent;
+}
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+*::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--adaptiveGrey300, #d1d6db);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--adaptiveGrey400, #b0b8c1);
+}
+
+/* 말풍선(툴팁)이 아래에 있는 버튼을 가려도 클릭이 그대로 통과하게 해요. */
+[role='tooltip'] {
+  pointer-events: none !important;
+}
+
+/*
+ * 말풍선(TDS Tooltip) 그림자: 기본값(0 16px 60px, 진하기 0.18)이 넓고 진해서 조금만 줄였어요.
+ * 말풍선 박스는 [role='tooltip'] 안쪽 두 단계 아래에 있어요.
+ */
+[role='tooltip'] > div > div {
+  box-shadow: 0 8px 28px 0 rgba(0, 29, 58, 0.1) !important;
+  /* 사이드바 말풍선이 왼쪽 가장자리에서 잘리지 않게 말풍선 박스만 --tt-shift만큼 오른쪽으로 옮겨요. */
+  translate: var(--tt-shift, 0px) 0;
+}
+/* 화살표는 박스가 옮겨진 만큼 반대로 되돌려서 항상 아이콘 가운데를 가리켜요. */
+[role='tooltip'] svg {
+  translate: calc(var(--tt-shift, 0px) * -1) 0;
+}
