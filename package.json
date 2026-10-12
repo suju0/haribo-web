@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 5173",
+    "dev:shim": "vite --mode shim --port 50549",
     "build": "tsc --noEmit && vite build",
+    "build:pages": "tsc --noEmit && vite build --mode shim",
     "build:artifact": "tsc --noEmit && node scripts/build-artifact.mjs"
   },
   "dependencies": {
