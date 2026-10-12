@@ -1,4 +1,5 @@
 import type { Answer, AffectedTask, DecisionChange, TaskState } from './data';
+import { STANDALONE } from './copy';
 
 /**
  * CLI 동작 시험 데이터
@@ -65,7 +66,7 @@ function rulePayment(viewer: CliViewer): DecisionChange {
     source: 'ai-chat',
     decisionKey: 'RULE-PAYMENT-AMOUNT-SERVER',
     issueTitle: '결제 금액을 어디에서 계산할지 정하기',
-    issueStatus: '진행 중',
+    issueStatus: STANDALONE ? '완료' : '진행 중',
     version: { from: null, to: 1 },
     kindLabel: '지속되는 제약 조건',
     processed: { done, total: shown.length },
@@ -148,10 +149,176 @@ function specDeliveryStatus(viewer: CliViewer): DecisionChange | null {
   };
 }
 
+/* ───────── 결정이 중간에 다시 바뀌는 상황(확정안 1 · 3 · 4) 샘플 — 대체 버전 전용 ───────── */
+
+/** 이 담당자가 이전 버전에 한 답 (관계있다 · 몰랐다) */
+const answered = (relation: Answer['relation'], awareness: Answer['awareness'], iso: string): Answer => ({
+  relation,
+  awareness,
+  at: kst(iso),
+});
+
+interface ReviseSpec {
+  id: string;
+  no: number;
+  iso: string;
+  title: string;
+  key: string;
+  issueTitle: string;
+  from: number | null;
+  to: number;
+  before: string | null;
+  after: string;
+  taskNo: string;
+  taskTitle: string;
+  taskAction: string;
+}
+
+/** 필요한 값만 넣으면 한 건을 만들어요 (백엔드 담당자 시점) */
+function revise(sp: ReviseSpec, patch: Partial<DecisionChange> = {}, taskState: TaskState = 'pending', awareness?: AffectedTask['awareness']): DecisionChange {
+  const tasks = [task(sp.taskNo, '백엔드', sp.taskTitle, sp.taskAction, taskState, awareness ? { awareness } : {})];
+  const done = tasks.filter((t) => t.state !== 'pending').length;
+  return {
+    id: sp.id,
+    issueNo: sp.no,
+    timestamp: kst(sp.iso),
+    author: '민호',
+    source: 'ai-chat',
+    decisionKey: sp.key,
+    issueTitle: sp.issueTitle,
+    issueStatus: '진행 중',
+    version: { from: sp.from, to: sp.to },
+    kindLabel: '사양 변경',
+    processed: { done, total: tasks.length },
+    evidence: 'CLI의 AI 대화에서 정해진 결정',
+    title: sp.title,
+    summary: '결정이 바뀌어서 다시 알려요.',
+    before: sp.before,
+    after: sp.after,
+    reason: '같은 결정이 다시 바뀌었어요. 달라진 값을 확인하고 내 작업에 영향이 있는지 답해주세요.',
+    importance: 'MEDIUM',
+    decisionState: '확정',
+    affectsMe: true,
+    status: 'NEW',
+    affectedTasks: tasks,
+    affectedAgents: [{ name: 'order-api CLI', upToDate: false }],
+    relatedFiles: [],
+    relatedCode: [],
+    recommendedAction: '내 작업이 바뀐 값에 영향을 받는지 답해주세요.',
+    rollbackAvailable: false,
+    changedAt: '2026.10.11',
+    responses: [],
+    ...patch,
+  };
+}
+
+/** 이미 답한 이전 버전 한 건 (확인한 변경 목록에 "답함"으로 남아요) */
+const reviseAnswered = (sp: ReviseSpec, ans: Answer): DecisionChange =>
+  revise(sp, { status: 'ACKNOWLEDGED', answer: ans }, 'accepted', ans.awareness === '알았다' ? '이미 알고 있었음' : '몰랐음');
+
+function reviseScenarios(): DecisionChange[] {
+  // 확정안 1: 답 안 함 + 값이 또 바뀜 → 이전 건은 "대체됨"(흐리게), 최신 1건만 새로 알려요.
+  const refundOld: ReviseSpec = {
+    id: 'CLI-SPEC-REFUND-WINDOW-V2',
+    no: 3,
+    iso: '2026-10-10T14:20:00',
+    title: '환불 가능 기간은 7일로 한다',
+    key: 'SPEC-REFUND-WINDOW',
+    issueTitle: '환불 가능 기간을 며칠로 할지 정하기',
+    from: 1,
+    to: 2,
+    before: '환불 가능 기간 14일 (v1)',
+    after: '환불 가능 기간 7일 (v2)',
+    taskNo: 'T-33',
+    taskTitle: '환불 API',
+    taskAction: '환불 가능 기간 검증을 수정해야 해요',
+  };
+  const refundNew: ReviseSpec = {
+    ...refundOld,
+    id: 'CLI-SPEC-REFUND-WINDOW-V3',
+    no: 8,
+    iso: '2026-10-11T15:10:00',
+    title: '환불 가능 기간은 3일로 한다',
+    from: 2,
+    to: 3,
+    before: '환불 가능 기간 7일 (v2)',
+    after: '환불 가능 기간 3일 (v3)',
+  };
+
+  // 확정안 3: 이미 답함 + 값이 다르게 바뀜 → 새로 알려요. (이전에 "관계있다"로 답했으면 안내를 붙여요)
+  const shipOldAnswer = answered('관계있다', '몰랐다', '2026-10-08T11:05:00');
+  const shipOld: ReviseSpec = {
+    id: 'CLI-SPEC-SHIPPING-FEE-V2',
+    no: 4,
+    iso: '2026-10-08T10:40:00',
+    title: '배송비는 3,000원으로 한다',
+    key: 'SPEC-SHIPPING-FEE',
+    issueTitle: '배송비 기준을 정하기',
+    from: 1,
+    to: 2,
+    before: '배송비 2,500원 (v1)',
+    after: '배송비 3,000원 (v2)',
+    taskNo: 'T-35',
+    taskTitle: '주문 금액 계산 API',
+    taskAction: '배송비 계산 값을 수정해야 해요',
+  };
+  const shipNew: ReviseSpec = {
+    ...shipOld,
+    id: 'CLI-SPEC-SHIPPING-FEE-V3',
+    no: 9,
+    iso: '2026-10-11T16:02:00',
+    title: '배송비는 3,500원으로 한다',
+    from: 2,
+    to: 3,
+    before: '배송비 3,000원 (v2)',
+    after: '배송비 3,500원 (v3)',
+  };
+
+  // 확정안 4: 이미 답함 + 원래 값으로 되돌림 → 새로 알리고 "되돌림" 표시
+  const couponOldAnswer = answered('관계있다', '알았다', '2026-10-09T09:30:00');
+  const couponOld: ReviseSpec = {
+    id: 'CLI-RULE-COUPON-STACK-V2',
+    no: 5,
+    iso: '2026-10-09T09:10:00',
+    title: '쿠폰은 중복 사용을 허용한다',
+    key: 'RULE-COUPON-STACK',
+    issueTitle: '쿠폰 중복 사용 여부를 정하기',
+    from: 1,
+    to: 2,
+    before: '쿠폰 중복 사용 불가 (v1)',
+    after: '쿠폰 중복 사용 허용 (v2)',
+    taskNo: 'T-37',
+    taskTitle: '쿠폰 적용 API',
+    taskAction: '중복 쿠폰 적용 로직을 수정해야 해요',
+  };
+  const couponNew: ReviseSpec = {
+    ...couponOld,
+    id: 'CLI-RULE-COUPON-STACK-V3',
+    no: 10,
+    iso: '2026-10-11T16:30:00',
+    title: '쿠폰은 중복 사용을 허용하지 않는다',
+    from: 2,
+    to: 3,
+    before: '쿠폰 중복 사용 허용 (v2)',
+    after: '쿠폰 중복 사용 불가 (v1)',
+  };
+
+  return [
+    revise(refundOld, { supersededBy: { issueNo: 8, version: 3 } }),
+    revise(refundNew, { isNewVersion: true }),
+    reviseAnswered(shipOld, shipOldAnswer),
+    revise(shipNew, { isNewVersion: true, previousAnswer: shipOldAnswer }),
+    reviseAnswered(couponOld, couponOldAnswer),
+    revise(couponNew, { revertedTo: { version: 1, from: 2 }, previousAnswer: couponOldAnswer }),
+  ];
+}
+
 /** 담당자가 세션을 시작한 직후 보이는 변경 목록 */
 export function buildCliChanges(viewer: CliViewer): DecisionChange[] {
   const spec = specDeliveryStatus(viewer);
-  return spec ? [spec, rulePayment(viewer)] : [rulePayment(viewer)];
+  const base = spec ? [spec, rulePayment(viewer)] : [rulePayment(viewer)];
+  // 다시 바뀌는 상황 샘플은 대체 버전의 서준(백엔드) 시점에만 넣어요.
+  return STANDALONE && viewer === 'seojun' ? [...base, ...reviseScenarios()] : base;
 }
 
 /**

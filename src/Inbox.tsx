@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
-import { ANSWERED, STANDALONE, TO_ANSWER } from './copy';
+import { ANSWERED, AUTO_CLOSED_TITLE, REAPPLY_HINT, STANDALONE, TO_ANSWER } from './copy';
 import { NotificationAccordion } from './NotificationAccordion';
 import {
   DecisionChange,
@@ -19,6 +19,7 @@ import {
   isNewDecision,
   formatWhen,
   isPending,
+  needsReapplyHint,
   relTime,
   reviewStatus,
   sortChanges,
@@ -70,6 +71,7 @@ function CliTags({ change }: { change: DecisionChange }) {
   return (
     <>
       {isNewDecision(change) && <Chip tone="blueFill">새 결정 사항</Chip>}
+      {change.isNewVersion && change.version && <Chip tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
       {change.issueStatus === '완료' && <Chip tone="green">이슈 완료</Chip>}
     </>
   );
@@ -171,10 +173,35 @@ function KindChip({ change }: { change: DecisionChange }) {
 /** 이전 값 → 지금 값 (이전 값이 없으면 "이전 값 없음") */
 function ChangeLine({ change, muted }: { change: DecisionChange; muted?: boolean }) {
   const cli = useCli();
-  return (
+  const line = (
     <Paragraph.Text typography="t7" color={muted ? adaptive.grey500 : adaptive.grey700}>
       {`${change.before ?? (cli ? '새 결정 사항' : '이전 값 없음')} → ${change.after}`}
     </Paragraph.Text>
+  );
+  if (!change.revertedTo) return line;
+  // 되돌림: 변경 내용 바로 앞에 "되돌림"을 붙이고, 내가 이전에 답한 이력이 있으면 뒤에 한 줄로 알려줘요.
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px' }}>
+      <Chip tone="purple">되돌림</Chip>
+      {line}
+      {change.previousAnswer && (
+        <Paragraph.Text typography="t7" color={adaptive.grey500}>
+          {`· 내가 v${change.revertedTo.from}에 답한 이력이 있어요`}
+        </Paragraph.Text>
+      )}
+    </div>
+  );
+}
+
+/** 이미 "관계있다"로 답했던 사람에게 붙이는 안내 (확정안 3 · 4) */
+function ReapplyHint({ change }: { change: DecisionChange }) {
+  if (!needsReapplyHint(change)) return null;
+  return (
+    <div style={{ marginTop: 2, alignSelf: 'flex-start', padding: '6px 10px', borderRadius: 8, background: adaptive.grey100 }}>
+      <Paragraph.Text typography="st12" color={adaptive.grey700}>
+        {REAPPLY_HINT}
+      </Paragraph.Text>
+    </div>
   );
 }
 
@@ -268,6 +295,7 @@ function PendingRow({ change, onOpen }: { change: DecisionChange; onOpen: (id: s
               <AiChip change={change} />
             </div>
             <ChangeLine change={change} />
+            {cli && <ReapplyHint change={change} />}
             <Meta change={change} />
           </div>
         }
@@ -298,8 +326,9 @@ function DoneRow({
   const done = change.affectedTasks.filter((t) => doneTasks.has(`${change.id}:${t.name}`)).length;
   const handled = change.processed ? change.processed.done : change.status === 'RESOLVED' ? total : done;
 
+  const superseded = !!change.supersededBy;
   return (
-    <div style={{ ...rowLine(first), background: first ? adaptive.blue50 : undefined }}>
+    <div style={{ ...rowLine(first), background: first ? adaptive.blue50 : undefined, opacity: superseded ? 0.55 : undefined }}>
       <ListRow
         border="none"
         withTouchEffect
@@ -315,7 +344,7 @@ function DoneRow({
               <VersionKind change={change} />
               <AiChip change={change} />
               {cli ? (
-                <Chip tone="green">답함</Chip>
+                <Chip tone={superseded ? 'gray' : 'green'}>{superseded ? '대체됨' : '답함'}</Chip>
               ) : (
                 <Chip tone={isNewDecision(change) ? 'blueFill' : 'gray'}>
                   {isNewDecision(change) ? '신규' : change.decisionState}
@@ -323,18 +352,25 @@ function DoneRow({
               )}
             </div>
             <ChangeLine change={change} />
+            {superseded && (
+              <Paragraph.Text typography="st12" color={adaptive.grey500}>
+                {`새 버전 #${change.supersededBy!.issueNo}${change.supersededBy!.version ? `(v${change.supersededBy!.version})으로` : '로'} 대체됐어요`}
+              </Paragraph.Text>
+            )}
             <Meta change={change} />
           </div>
         }
         right={
-          <div style={{ width: 80, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-            <Paragraph.Text typography="t7" fontWeight="medium" color={adaptive.blue500}>
-              {`${handled}/${total} 처리`}
-            </Paragraph.Text>
-            <div style={{ width: 80 }}>
-              <ProgressBar progress={total === 0 ? 0 : handled / total} size="light" />
+          superseded ? undefined : (
+            <div style={{ width: 80, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+              <Paragraph.Text typography="t7" fontWeight="medium" color={adaptive.blue500}>
+                {`${handled}/${total} 처리`}
+              </Paragraph.Text>
+              <div style={{ width: 80 }}>
+                <ProgressBar progress={total === 0 ? 0 : handled / total} size="light" />
+              </div>
             </div>
-          </div>
+          )
         }
       />
     </div>
@@ -465,7 +501,8 @@ export function Inbox({
   const [bannerOpen, setBannerOpen] = useState(true);
   const [notifyOn, setNotifyOn] = useState(false);
 
-  const sorted = useMemo(() => sortChanges(changes), [changes]);
+  // 확정안 2: 답 안 함 + 원래 값으로 돌아와 자동으로 닫힌 건은 목록 어디에도 보이지 않아요.
+  const sorted = useMemo(() => sortChanges(changes).filter((c) => !c.hiddenClosed), [changes]);
   const hiddenCount = sorted.filter((c) => !c.affectsMe).length;
 
   const q = query.trim().toLowerCase().replace(/^#/, '');
@@ -515,7 +552,7 @@ export function Inbox({
       {bannerOpen && !(cli && changes.length === 0) && (
         // 대체 버전(STANDALONE)은 새 디자인(알림 꺼짐 → 설정 방법 펼침), 로컬(TDS)은 기존 배너를 써요.
         STANDALONE ? (
-          <NotificationAccordion />
+          <NotificationAccordion onClose={() => setBannerOpen(false)} />
         ) : (
           <NotificationBanner on={notifyOn} onToggle={toggleNotify} onClose={() => setBannerOpen(false)} />
         )
@@ -620,7 +657,7 @@ export function Inbox({
               <div style={{ padding: '24px 20px 4px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                   <Paragraph.Text typography="t6" fontWeight="bold" color={adaptive.grey900}>
-                    자동으로 닫힌 변경
+                    {AUTO_CLOSED_TITLE}
                   </Paragraph.Text>
                   <Paragraph.Text typography="t6" fontWeight="bold" color={adaptive.grey500}>
                     {closedItems.length}

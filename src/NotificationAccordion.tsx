@@ -3,7 +3,7 @@
  * 디자인: "Browser Notification_denied.svg"(접힘) → "Browser Notification_arcordian.svg"(펼침)
  *
  * "설정 변경 방법 보기"를 누르면 같은 창이 아래로 펼쳐지면서 3단계 설정 방법이 나와요.
- * 다시 누르거나 ×를 누르면 접혀요.
+ * 다시 누르면 접혀요. ×는 접힘·펼침과 상관없이 알림 창 전체를 닫아요.
  */
 import { useId, useLayoutEffect, useRef, useState } from 'react';
 import { Paragraph } from '@toss/tds-mobile';
@@ -79,7 +79,7 @@ function SmallButton({ children, onClick, width, ...rest }: { children: string; 
   );
 }
 
-export function NotificationAccordion() {
+export function NotificationAccordion({ onClose }: { onClose: () => void }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -149,17 +149,15 @@ export function NotificationAccordion() {
             설정 변경 방법 보기
           </SmallButton>
         </div>
-        {open && (
-          <button
-            type="button"
-            aria-label="설정 방법 접기"
-            className="notify-fade-only"
-            onClick={() => setOpen(false)}
-            style={{ position: 'absolute', top: 19, right: 21, border: 0, background: 'none', padding: 0, cursor: 'pointer' }}
-          >
-            <IconClose />
-          </button>
-        )}
+        {/* × 는 알림 창 전체를 닫아요. 접혀 있을 때도 펼쳤을 때도 같은 자리에 있어요. */}
+        <button
+          type="button"
+          aria-label="알림 안내 닫기"
+          onClick={onClose}
+          style={{ position: 'absolute', top: 19, right: 21, border: 0, background: 'none', padding: 0, cursor: 'pointer' }}
+        >
+          <IconClose />
+        </button>
       </div>
 
       {/* 펼침 영역: 높이가 0 → 내용 높이로 부드럽게 늘어나요 */}

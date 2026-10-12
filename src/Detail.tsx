@@ -30,6 +30,7 @@ import {
   taskOwner,
   taskTitle,
 } from './data';
+import { AUTO_CLOSED_NOTICE, REAPPLY_HINT } from './copy';
 import { BlueFillChipWeight, Chip, IconDecision, IconEdit, IconIssue, IconSparkle, IssueFilterChip } from './design';
 
 type ReplyMode = 'none' | 'question' | 'request';
@@ -79,7 +80,7 @@ function SectionTitle({
 }
 
 /** 변경 전 / 변경 후 박스 */
-function ValueBox({ label, value, after }: { label: string; value: string; after?: boolean }) {
+function ValueBox({ label, value, after, tag }: { label: string; value: string; after?: boolean; tag?: React.ReactNode }) {
   return (
     <div
       style={{
@@ -93,9 +94,18 @@ function ValueBox({ label, value, after }: { label: string; value: string; after
         gap: 10,
       }}
     >
-      <Paragraph.Text typography="st12" color={after ? adaptive.blue700 : adaptive.grey600}>
-        {label}
-      </Paragraph.Text>
+      {tag ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Paragraph.Text typography="st12" color={after ? adaptive.blue700 : adaptive.grey600}>
+            {label}
+          </Paragraph.Text>
+          {tag}
+        </div>
+      ) : (
+        <Paragraph.Text typography="st12" color={after ? adaptive.blue700 : adaptive.grey600}>
+          {label}
+        </Paragraph.Text>
+      )}
       <Paragraph.Text typography="st11" fontWeight="medium" color={adaptive.grey900}>
         {value}
       </Paragraph.Text>
@@ -537,7 +547,10 @@ export function Detail({
   variant = 'default',
   peers,
   onPeerSelect,
+  autoClosedNotice,
 }: {
+  /** 대체 버전: 상세를 보는 중에 원래 값으로 돌아와 자동으로 닫혔을 때 한 줄 안내를 띄워요 */
+  autoClosedNotice?: boolean;
   /** CLI 탭: 이 담당자에게 온 변경 목록 (상세 위쪽 탭으로 보여줘요) */
   peers?: DecisionChange[];
   onPeerSelect?: (id: string) => void;
@@ -562,7 +575,11 @@ export function Detail({
   const cli = variant === 'cli';
 
   const acked = !isPending(change);
-  const closed = !!change.autoClosed;
+  // 새 버전으로 대체된 건: 기존 자동 닫힘(autoClosed) 또는 확정안 1의 대체됨(supersededBy)
+  const byIssueNo = change.autoClosed?.byIssueNo ?? change.supersededBy?.issueNo;
+  const closed = byIssueNo !== undefined;
+  // 확정안 2: 상세를 보던 중에 원래 값으로 돌아와 자동으로 닫힌 경우
+  const showNotice = cli && !!(autoClosedNotice || change.hiddenClosed);
   const currentIdx = STATUS_FLOW.indexOf(change.status);
   const ai = isAiFound(change);
   const fresh = isNewDecision(change);
@@ -586,6 +603,31 @@ export function Detail({
         <PeerBar peers={peers} currentId={change.id} onSelect={onPeerSelect} onBack={onBack} />
       )}
 
+      {/* 확정안 2: 상세를 보는 중에 자동으로 닫히면 말없이 사라지지 않게 한 줄로 알려줘요 */}
+      {showNotice && (
+        <div
+          role="status"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            marginBottom: 20,
+            padding: '12px 16px',
+            borderRadius: 10,
+            background: '#F0F6FF',
+            border: `1px solid ${adaptive.blue100}`,
+          }}
+        >
+          <Paragraph.Text typography="t7" fontWeight="medium" color={adaptive.grey800}>
+            {AUTO_CLOSED_NOTICE}
+          </Paragraph.Text>
+          <TextButton size="xsmall" color={adaptive.blue500} onClick={onBack}>
+            목록으로
+          </TextButton>
+        </div>
+      )}
+
       {/* 제목 + 칩 + 목록으로 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
@@ -600,6 +642,8 @@ export function Detail({
                 {reviewStatus(change)}
               </Chip>
               {fresh && <Chip tone="blueFill">새 결정 사항</Chip>}
+              {change.revertedTo && <Chip tone="purple">되돌림</Chip>}
+              {change.isNewVersion && change.version && <Chip tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
               {change.source === 'code' ? (
                 <Chip tone="gray">코드에서 바꿈</Chip>
               ) : (
@@ -665,7 +709,7 @@ export function Detail({
       {closed && (
         <div style={{ background: adaptive.grey50, borderRadius: 10, padding: '18px 20px', marginTop: 20 }}>
           <Paragraph.Text typography="t6" fontWeight="bold" color={adaptive.grey800}>
-            {`새 버전(#${change.autoClosed?.byIssueNo})으로 대체되어 자동으로 닫혔어요`}
+            {change.supersededBy ? `새 버전(#${byIssueNo})으로 대체됐어요` : `새 버전(#${byIssueNo})으로 대체되어 자동으로 닫혔어요`}
           </Paragraph.Text>
           <div style={{ marginTop: 4 }}>
             <Paragraph.Text typography="t7" color={adaptive.grey600}>
@@ -697,7 +741,7 @@ export function Detail({
         ) : (
           <>
             <ValueBox label="변경 전" value={change.before ?? '이전 값이 없어요 · 새로 생긴 결정이에요'} />
-            <ValueBox label="변경 후" value={change.after} after />
+            <ValueBox label="변경 후" value={change.after} after tag={change.revertedTo ? <Chip tone="purple">되돌림</Chip> : undefined} />
           </>
         )}
       </div>
@@ -841,7 +885,7 @@ export function Detail({
       )}
 
       {/* 지금 해야 할 일 + 답하기 */}
-      {cli && change.answer ? (
+      {showNotice ? null : cli && change.answer ? (
         // 답한 뒤에는 "지금 해야 할 일" 대신 "내 답변"(아래 박스에 답함 · 관계 · 알았나 · 답한 시각)만 보여줘요.
         <SectionTitle bottom={0}>내 답변</SectionTitle>
       ) : cli ? (
@@ -858,19 +902,29 @@ export function Detail({
         </>
       )}
 
-      {closed ? (
+      {showNotice ? null : closed ? (
         <div style={{ marginTop: 16 }}>
-          <Button size="large" display="block" onClick={() => onOpenIssue(change.autoClosed!.byIssueNo)}>
-            {`새 버전 #${change.autoClosed?.byIssueNo} 보러 가기`}
+          <Button size="large" display="block" onClick={() => onOpenIssue(byIssueNo!)}>
+            {`새 버전 #${byIssueNo} 보러 가기`}
           </Button>
         </div>
       ) : cli ? (
-        <RelationFlow
+        <>
+          {/* 확정안 3 · 4: 이전 버전에 "관계있다"로 답했던 사람에게만 붙여요 */}
+          {change.previousAnswer?.relation === '관계있다' && !change.answer && (
+            <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: adaptive.grey100 }}>
+              <Paragraph.Text typography="t7" color={adaptive.grey700}>
+                {REAPPLY_HINT}
+              </Paragraph.Text>
+            </div>
+          )}
+          <RelationFlow
           key={change.id}
           change={change}
           onAnswer={(a) => onAnswer?.(a)}
           onNext={acked && total > 1 ? onNext : undefined}
-        />
+          />
+        </>
       ) : (
         <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
           <Button size="large" display="block" color="primary" disabled={acked} onClick={onAcknowledge}>

@@ -76,6 +76,19 @@ export interface DecisionChange {
   pr?: { number: number; title: string };
   /** 답하기 전에 결정이 또 바뀌어서 자동으로 닫힌 경우: 어떤 새 버전으로 대체됐는지 */
   autoClosed?: { byIssueNo: number; at: string };
+  /**
+   * 대체 버전 전용(확정안 1): 답 안 함 + 값이 또 바뀜 → 이전 건은 "대체됨"으로 확인한 변경 목록에 흐리게 남고,
+   * 최신 1건만 새로 알려요. (autoClosed 는 "기존 자동 닫힘" 카드에 그대로 쓰여요)
+   */
+  supersededBy?: { issueNo: number; version?: number };
+  /** 대체 버전 전용(확정안 2): 답 안 함 + 원래 값으로 돌아옴 → 자동으로 닫히고 목록 어디에도 보이지 않아요 */
+  hiddenClosed?: boolean;
+  /** 대체 버전 전용(확정안 3 · 4): 같은 결정의 이전 버전에 이미 답했던 사람에게 새로 알리는 건 */
+  isNewVersion?: boolean;
+  /** 대체 버전 전용(확정안 4): 이미 답한 뒤 값이 원래 값으로 되돌려진 건. version은 되돌아간 버전, from은 직전 버전 */
+  revertedTo?: { version: number; from: number };
+  /** 대체 버전 전용: 같은 결정의 이전 버전에 내가 한 답 */
+  previousAnswer?: Answer;
   /** 나(현재 사용자)의 작업에 영향이 있는 변경인지 */
   affectsMe: boolean;
   status: Status;
@@ -329,7 +342,8 @@ export const INITIAL_CHANGES: DecisionChange[] = [
 
 /** MD §11 권장: 미확인 우선 + 같은 상태에서는 최신순 */
 /** 자동으로 닫힌 변경은 답할 필요가 없어서 확인 대기에 들어가지 않는다 */
-export const isPending = (c: DecisionChange) => !c.autoClosed && (c.status === 'NEW' || c.status === 'VIEWED');
+export const isPending = (c: DecisionChange) =>
+  !c.autoClosed && !c.supersededBy && !c.hiddenClosed && (c.status === 'NEW' || c.status === 'VIEWED');
 export const isAutoClosed = (c: DecisionChange) => !!c.autoClosed;
 export const isNewDecision = (c: DecisionChange) => c.before === null;
 export const isAiFound = (c: DecisionChange) => c.source === 'pr-ai';
@@ -377,7 +391,10 @@ export const taskNo = (c: DecisionChange, index: number) => c.affectedTasks[inde
 /** 확인할 변경 상태: 대기 / 답함 / 대체됨 만 화면에 보여요 (자동 닫힘은 화면에 나오지 않아요) */
 export type ReviewStatus = '대기' | '답함' | '대체됨';
 export const reviewStatus = (c: DecisionChange): ReviewStatus =>
-  c.autoClosed ? '대체됨' : isPending(c) ? '대기' : '답함';
+  c.autoClosed || c.supersededBy ? '대체됨' : isPending(c) ? '대기' : '답함';
+
+/** "이미 반영하셨다면 원래대로 다시 고쳐야 해요" 안내를 붙일지: 이전 버전에 "관계있다"로 답한 경우에만 */
+export const needsReapplyHint = (c: DecisionChange) => c.previousAnswer?.relation === '관계있다';
 
 /** 언제: 오늘이면 "오후 2:13", 아니면 "10월 13일 오후 2:13" */
 export const formatWhen = (ts: number, now = Date.now()) => {

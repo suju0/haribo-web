@@ -14,6 +14,8 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 button { font-family: inherit; }
+/* 스크롤바가 생겼다 사라져도 내용 폭이 변하지 않게 자리를 미리 잡아둬요. (안내 창이 펼쳐질 때 폭이 달라지던 문제) */
+* { scrollbar-gutter: stable; }
 .tds-shim-touch {
   position: absolute;
   inset: 0;
