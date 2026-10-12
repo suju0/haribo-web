@@ -13,10 +13,18 @@ import step1 from './assets/notify-step1.png';
 import step2 from './assets/notify-step2.png';
 import step3 from './assets/notify-step3.png';
 
+/**
+ * 펼쳤을 때 머리글의 [허용] [차단] 버튼 표시 여부. 디자인에서 빠져서 숨겨 뒀어요. 다시 보여주려면 true로 바꾸면 돼요.
+ */
+const SHOW_ALLOW_BLOCK_BUTTONS = false;
+
+/** 펼쳐지는 영역의 배경 (아주 연한 회색) */
+const PANEL_BG = '#FCFCFC';
+
 const STEPS = [
   {
     title: '사이트 정보 아이콘을 클릭',
-    lines: ['브라우저에서 주소창 왼쪽의', '좌물쇠 또는 사이트 정보 아이콘을 클릭합니다'],
+    lines: ['브라우저에서 주소창 왼쪽의', '자물쇠 또는 사이트 정보 아이콘을 클릭합니다'],
     img: step1,
     imgWidth: 240,
     imgTop: 0,
@@ -86,7 +94,7 @@ export function NotificationAccordion() {
           </Paragraph.Text>
         </div>
         <div style={{ alignSelf: 'flex-end', display: 'flex', gap: 10, flexShrink: 0 }}>
-          {open && (
+          {open && SHOW_ALLOW_BLOCK_BUTTONS && (
             <>
               <span className="notify-fade" style={{ display: 'flex' }}>
                 <SmallButton width={43}>허용</SmallButton>
@@ -114,7 +122,7 @@ export function NotificationAccordion() {
       </div>
 
       {/* 펼침 영역: 높이가 0 → 내용 높이로 부드럽게 늘어나요 */}
-      <div id={panelId} className="notify-panel" data-open={open} aria-hidden={!open}>
+      <div id={panelId} className="notify-panel" data-open={open} aria-hidden={!open} style={{ background: PANEL_BG }}>
         <div style={{ minHeight: 0, overflow: 'hidden' }}>
           <div
             style={{
@@ -127,7 +135,7 @@ export function NotificationAccordion() {
             {STEPS.map((s) => (
               <div
                 key={s.title}
-                style={{ borderRadius: 15, background: '#FAFAFA', padding: '22px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                style={{ padding: '22px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
               >
                 <div style={{ width: '100%', height: 100, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
                   <img
