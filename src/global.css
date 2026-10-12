@@ -101,14 +101,25 @@ body,
 
 /* ───────── 알림 안내 창 펼침(아코디언): 대체 버전 전용 (src/NotificationAccordion.tsx) ───────── */
 .notify-panel {
-  display: grid;
-  grid-template-rows: 0fr;
+  height: 0;
+  overflow: hidden;
   opacity: 0;
-  transition: grid-template-rows 360ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 240ms ease-out;
+  /* 아주 살짝만 튀는 곡선(끝에서 3% 안쪽으로 넘쳤다 돌아와요) */
+  transition: height 420ms cubic-bezier(0.22, 1.1, 0.36, 1), opacity 260ms ease-out;
 }
 .notify-panel[data-open='true'] {
-  grid-template-rows: 1fr;
   opacity: 1;
+}
+.notify-fade-only {
+  animation: notify-fade-only-in 220ms ease-out both;
+}
+@keyframes notify-fade-only-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 .notify-fade {
   animation: notify-fade-in 260ms ease-out both;
@@ -125,7 +136,8 @@ body,
 }
 @media (prefers-reduced-motion: reduce) {
   .notify-panel,
-  .notify-fade {
+  .notify-fade,
+  .notify-fade-only {
     transition: none;
     animation: none;
   }

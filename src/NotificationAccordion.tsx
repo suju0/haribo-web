@@ -5,7 +5,7 @@
  * "설정 변경 방법 보기"를 누르면 같은 창이 아래로 펼쳐지면서 3단계 설정 방법이 나와요.
  * 다시 누르거나 ×를 누르면 접혀요.
  */
-import { useId, useState } from 'react';
+import { useId, useLayoutEffect, useRef, useState } from 'react';
 import { Paragraph } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
 import { IconBellOff, IconClose } from './design';
@@ -20,6 +20,9 @@ const SHOW_ALLOW_BLOCK_BUTTONS = false;
 
 /** 펼쳐지는 영역의 배경 */
 const PANEL_BG = '#FFFFFF';
+
+/** 펼치는 데 걸리는 시간(ms). global.css 의 .notify-panel transition 과 같아야 해요. */
+const NOTIFY_OPEN_MS = 420;
 
 const STEPS = [
   {
@@ -79,6 +82,33 @@ function SmallButton({ children, onClick, width, ...rest }: { children: string; 
 export function NotificationAccordion() {
   const [open, setOpen] = useState(false);
   const panelId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const firstRun = useRef(true);
+
+  // 높이를 0 ↔ 내용 높이(px)로 바꿔서 펼치고, 다 펼쳐지면 auto로 돌려놔요(창 크기가 바뀌어도 맞게).
+  useLayoutEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    if (firstRun.current) {
+      firstRun.current = false;
+      return;
+    }
+    let done: ReturnType<typeof setTimeout> | undefined;
+    if (open) {
+      el.style.height = `${el.scrollHeight}px`;
+      // transitionend 가 안 오는 경우(움직임 줄이기 설정 등)에도 auto로 돌려놔요.
+      done = setTimeout(() => {
+        if (panelRef.current) panelRef.current.style.height = 'auto';
+      }, NOTIFY_OPEN_MS + 60);
+    } else {
+      el.style.height = `${el.getBoundingClientRect().height}px`; // auto → 현재 px
+      void el.offsetHeight; // 강제로 한 번 그려서 여기서부터 줄어들게
+      el.style.height = '0px';
+    }
+    return () => {
+      if (done) clearTimeout(done);
+    };
+  }, [open]);
 
   return (
     <div className="notify-accordion" style={{
@@ -96,12 +126,12 @@ export function NotificationAccordion() {
       {/* 머리글: 접힘 / 펼침에 따라 문구와 버튼이 바뀌어요 */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 20, padding: 30 }}>
         <IconBellOff />
-        <div key={open ? 'open' : 'closed'} className="notify-fade" style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1, minWidth: 0 }}>
           <Paragraph.Text typography="t6" fontWeight="bold" color={adaptive.grey900} style={{ lineHeight: '22px' }}>
-            {open ? '이 사이트에서 알림을 보내도록 허용할까요?' : '알림이 꺼져 있어요'}
+            알림이 꺼져 있어요
           </Paragraph.Text>
           <Paragraph.Text typography="st12" color={adaptive.grey700} style={{ lineHeight: '20px' }}>
-            {open ? '사이트의 알림 권한 요청' : '브라우저 설정에서 알림이 차단된 상태예요. 알림을 받으려면 브라우저 설정에서 권한을 허용해 주세요.'}
+            브라우저 설정에서 알림이 차단된 상태예요. 알림을 받으려면 브라우저 설정에서 권한을 허용해 주세요.
           </Paragraph.Text>
         </div>
         <div style={{ alignSelf: 'flex-end', display: 'flex', gap: 10, flexShrink: 0 }}>
@@ -123,7 +153,7 @@ export function NotificationAccordion() {
           <button
             type="button"
             aria-label="설정 방법 접기"
-            className="notify-fade"
+            className="notify-fade-only"
             onClick={() => setOpen(false)}
             style={{ position: 'absolute', top: 19, right: 21, border: 0, background: 'none', padding: 0, cursor: 'pointer' }}
           >
@@ -133,8 +163,8 @@ export function NotificationAccordion() {
       </div>
 
       {/* 펼침 영역: 높이가 0 → 내용 높이로 부드럽게 늘어나요 */}
-      <div id={panelId} className="notify-panel" data-open={open} aria-hidden={!open} style={{ background: PANEL_BG }}>
-        <div style={{ minHeight: 0, overflow: 'hidden' }}>
+      <div ref={panelRef} id={panelId} className="notify-panel" data-open={open} aria-hidden={!open} style={{ background: PANEL_BG }}>
+        <div>
           <div
             style={{
               display: 'grid',
