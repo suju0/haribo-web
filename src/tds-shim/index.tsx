@@ -564,16 +564,27 @@ export function Tooltip({
   const visible = open ?? (openOnHover ? hover : false);
 
   useLayoutEffect(() => {
-    if (!visible || !anchor.current || !bubble.current) return;
-    const a = anchor.current.getBoundingClientRect();
-    const b = bubble.current.getBoundingClientRect();
-    const gap = 18;
-    const cx = a.left + a.width / 2;
-    const margin = 12;
-    let x = cx - b.width / 2;
-    x = Math.max(margin, Math.min(x, window.innerWidth - margin - b.width));
-    const y = placement === 'bottom' ? a.bottom + gap : a.top - gap - b.height;
-    setPos({ x, y, ax: cx - x });
+    if (!visible) return;
+    const compute = () => {
+      if (!anchor.current || !bubble.current) return;
+      const a = anchor.current.getBoundingClientRect();
+      const bw = bubble.current.getBoundingClientRect().width;
+      const bh = bubble.current.getBoundingClientRect().height;
+      const gap = 18;
+      const cx = a.left + a.width / 2;
+      // 사이드바처럼 말풍선을 --tt-shift 만큼 옮기는 경우(global.css), 옮긴 뒤의 왼쪽 시작점이
+      // 짧은 말풍선(예: "변경 상세")의 시작점(12.5px)과 같아지도록 그만큼 미리 빼요.
+      const shift = parseFloat(document.body.style.getPropertyValue('--tt-shift')) || 0;
+      const minLeft = 12.5 - shift;
+      let x = cx - bw / 2;
+      x = Math.max(minLeft, Math.min(x, window.innerWidth - 12 - bw));
+      const y = placement === 'bottom' ? a.bottom + gap : a.top - gap - bh;
+      setPos({ x, y, ax: cx - x });
+    };
+    compute();
+    // --tt-shift 는 말풍선이 뜬 직후에 정해져서, 한 프레임 뒤에 다시 계산해요.
+    const id = requestAnimationFrame(compute);
+    return () => cancelAnimationFrame(id);
   }, [visible, placement, message]);
 
   const child = isValidElement(children)
