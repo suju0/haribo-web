@@ -18,8 +18,8 @@ import step3 from './assets/notify-step3.png';
  */
 const SHOW_ALLOW_BLOCK_BUTTONS = false;
 
-/** 펼쳐지는 영역의 배경 (아주 연한 회색) */
-const PANEL_BG = '#FCFCFC';
+/** 펼쳐지는 영역의 배경 */
+const PANEL_BG = '#FFFFFF';
 
 const STEPS = [
   {
@@ -81,7 +81,18 @@ export function NotificationAccordion() {
   const panelId = useId();
 
   return (
-    <div className="notify-accordion" style={{ position: 'relative', marginTop: 22, borderRadius: 14, background: '#F0F6FF', overflow: 'hidden' }}>
+    <div className="notify-accordion" style={{
+        position: 'relative',
+        marginTop: 22,
+        borderRadius: 14,
+        background: '#F0F6FF',
+        overflow: 'hidden',
+        // 펼쳤을 때만 "확인할 변경" 카드와 같은 파란 테두리(1px, blue100). outline은 안쪽 내용 위에 그려져서 흰 영역에도 보여요.
+        outline: `1px solid ${open ? adaptive.blue100 : 'transparent'}`,
+        outlineOffset: -1,
+        transition: 'outline-color 240ms ease-out',
+      }}
+    >
       {/* 머리글: 접힘 / 펼침에 따라 문구와 버튼이 바뀌어요 */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 20, padding: 30 }}>
         <IconBellOff />
