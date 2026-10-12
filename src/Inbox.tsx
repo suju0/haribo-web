@@ -8,6 +8,7 @@ import {
   Tooltip,
 } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
+import { ANSWERED, TO_ANSWER } from './copy';
 import {
   DecisionChange,
   DecisionState,
@@ -235,8 +236,8 @@ function CliEmptyCards() {
   );
   return (
     <>
-      {card(adaptive.blue100, '답할 변경', '아직 답할 변경이 없어요', '새로운 변경이 감지되면 이곳에서 알려드릴게요')}
-      {card(adaptive.grey200, '답한 변경', '아직 답한 변경이 없어요', '변경에 답하면 이곳에 모여요')}
+      {card(adaptive.blue100, TO_ANSWER, `아직 ${TO_ANSWER}이 없어요`, '새로운 변경이 감지되면 이곳에서 알려드릴게요')}
+      {card(adaptive.grey200, ANSWERED, `아직 ${ANSWERED}이 없어요`, '변경에 답하면 이곳에 모여요')}
     </>
   );
 }
@@ -549,12 +550,12 @@ export function Inbox({
               }}
             >
               <div style={{ padding: '24px 20px 20px' }}>
-                <CardTitle count={pendingItems.length}>답할 변경</CardTitle>
+                <CardTitle count={pendingItems.length}>{TO_ANSWER}</CardTitle>
               </div>
               {pendingItems.length === 0 && (
                 // 답할 변경이 0개면 빈 화면을 보여줘요
                 <div style={{ padding: '8px 0 32px' }}>
-                  <Result title="지금 답할 변경이 없어요" description="새로운 변경이 감지되면 이곳에서 알려드릴게요." />
+                  <Result title={`지금 ${TO_ANSWER}이 없어요`} description="새로운 변경이 감지되면 이곳에서 알려드릴게요." />
                 </div>
               )}
               {pendingItems.map((c) => (
@@ -575,7 +576,7 @@ export function Inbox({
               }}
             >
               <div style={{ padding: '24px 20px 20px' }}>
-                <CardTitle count={doneItems.length}>답한 변경</CardTitle>
+                <CardTitle count={doneItems.length}>{ANSWERED}</CardTitle>
               </div>
               {doneItems.map((c, i) => (
                 <DoneRow key={c.id} change={c} first={i === 0} doneTasks={doneTasks} onOpen={onOpen} />

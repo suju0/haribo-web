@@ -13,6 +13,7 @@ export default defineConfig({
       { find: /^@toss\/tds-mobile$/, replacement: path.resolve(import.meta.dirname, 'src/tds-shim/index.tsx') },
     ],
   },
+  define: { __STANDALONE__: 'true' },
   plugins: [react({ jsxImportSource: '@emotion/react' })],
   build: {
     outDir: 'dist-artifact',

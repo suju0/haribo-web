@@ -18,5 +18,7 @@ const shimAlias = [
 export default defineConfig(({ mode }) => ({
   base: process.env.BASE_PATH ?? '/',
   resolve: { alias: mode === 'shim' ? shimAlias : [] },
+  // 대체 버전(배포용)에서만 다른 문구를 쓰려고 알려줘요. 자세한 건 src/copy.ts
+  define: { __STANDALONE__: JSON.stringify(mode === 'shim') },
   plugins: [react({ jsxImportSource: '@emotion/react' })],
 }));
