@@ -17,6 +17,8 @@ const shimAlias = [
 // GitHub Pages처럼 하위 경로(/저장소이름/)에 올릴 때는 BASE_PATH 환경 변수로 경로를 알려줘요. 로컬에서는 기본값(/)이에요.
 export default defineConfig(({ mode }) => ({
   base: process.env.BASE_PATH ?? '/',
+  // 로컬(TDS) 서버와 대체 버전 서버가 같은 캐시를 쓰면 서로 덮어써서 화면이 깨져서, 대체 버전은 캐시 폴더를 따로 써요.
+  cacheDir: mode === 'shim' ? 'node_modules/.vite-shim' : 'node_modules/.vite',
   resolve: { alias: mode === 'shim' ? shimAlias : [] },
   // 대체 버전(배포용)에서만 다른 문구를 쓰려고 알려줘요. 자세한 건 src/copy.ts
   define: { __STANDALONE__: JSON.stringify(mode === 'shim') },

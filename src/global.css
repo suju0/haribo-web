@@ -98,3 +98,35 @@ body,
 [role='tooltip'] svg {
   translate: calc(var(--tt-shift, 0px) * -1) 0;
 }
+
+/* ───────── 알림 안내 창 펼침(아코디언): 대체 버전 전용 (src/NotificationAccordion.tsx) ───────── */
+.notify-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 360ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 240ms ease-out;
+}
+.notify-panel[data-open='true'] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.notify-fade {
+  animation: notify-fade-in 260ms ease-out both;
+}
+@keyframes notify-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .notify-panel,
+  .notify-fade {
+    transition: none;
+    animation: none;
+  }
+}

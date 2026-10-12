@@ -8,7 +8,8 @@ import {
   Tooltip,
 } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
-import { ANSWERED, TO_ANSWER } from './copy';
+import { ANSWERED, STANDALONE, TO_ANSWER } from './copy';
+import { NotificationAccordion } from './NotificationAccordion';
 import {
   DecisionChange,
   DecisionState,
@@ -512,7 +513,12 @@ export function Inbox({
 
       {/* 브라우저 알림 안내 */}
       {bannerOpen && !(cli && changes.length === 0) && (
-        <NotificationBanner on={notifyOn} onToggle={toggleNotify} onClose={() => setBannerOpen(false)} />
+        // 대체 버전(STANDALONE)은 새 디자인(알림 꺼짐 → 설정 방법 펼침), 로컬(TDS)은 기존 배너를 써요.
+        STANDALONE ? (
+          <NotificationAccordion />
+        ) : (
+          <NotificationBanner on={notifyOn} onToggle={toggleNotify} onClose={() => setBannerOpen(false)} />
+        )
       )}
 
       {/* 검색 (지금은 숨김) */}
