@@ -314,7 +314,7 @@ function PendingRow({ change, onOpen }: { change: DecisionChange; onOpen: (id: s
         }
         right={
           cli && STANDALONE ? (
-            // 답해야 하는 변경이라는 걸 알리는 파란 버튼 (다른 칩들과 같은 파랑 · 토스의 행동 버튼처럼)
+            // 답해야 하는 변경이라는 걸 알리는 파란 버튼 (시안 2: 토스의 행동 버튼처럼 파랑 채움 + 흰 글자)
             <span
               style={{
                 display: 'inline-flex',
@@ -322,8 +322,8 @@ function PendingRow({ change, onOpen }: { change: DecisionChange; onOpen: (id: s
                 height: 32,
                 padding: '0 14px',
                 borderRadius: 9,
-                background: '#E9F1FC',
-                color: '#1F72EA',
+                background: '#3182F6',
+                color: '#FFFFFF',
                 fontSize: 13,
                 fontWeight: 500,
                 whiteSpace: 'nowrap',
