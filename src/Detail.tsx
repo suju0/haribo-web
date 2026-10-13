@@ -32,6 +32,7 @@ import {
   taskTitle,
 } from './data';
 import { TaskCheck, type TaskCheckState } from './TaskCheck';
+import { CheckMotionSwitch } from './checkMotion';
 import { ANSWER_NEEDED, AUTO_CLOSED_NOTICE, REAPPLY_HINT, STANDALONE } from './copy';
 import { BlueFillChipWeight, Chip, IconDecision, IconEdit, IconIssue, IconSparkle, IssueFilterChip } from './design';
 
@@ -43,6 +44,12 @@ type ReplyMode = 'none' | 'question' | 'request';
  * (기존 탭은 이 값과 상관없이 그대로 보여요)
  */
 const SHOW_AGENT_CONTEXT_IN_CLI = false;
+
+/**
+ * 작업 표 체크 아이콘의 움직임 두 가지(토스 방식 · 기존 스프링 방식)를 비교하는 스위치 표시 여부.
+ * 고르고 나면 false 로 바꿔서 숨기면 돼요. (대체 버전 전용)
+ */
+const SHOW_CHECK_MOTION_SWITCH = true;
 
 /**
  * CLI 탭의 "이전 결정 · 되돌릴 수 있는 변경" 영역(현재 결정 · 변경일 · 변경 전 표, 이전 결정 보기 / 이전 상태로 되돌리기 버튼) 표시 여부.
@@ -894,6 +901,8 @@ export function Detail({
           {change.reason}
         </Paragraph.Text>
       </div>
+
+      {STANDALONE && cli && SHOW_CHECK_MOTION_SWITCH && <CheckMotionSwitch />}
 
       {/* 영향받는 작업 표 */}
       <div
