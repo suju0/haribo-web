@@ -19,3 +19,9 @@ export const REAPPLY_HINT = '이미 반영했다면 다시 고쳐주세요';
 
 /** 상세를 보는 중에 원래 값으로 돌아와서 자동으로 닫혔을 때 띄우는 한 줄 */
 export const AUTO_CLOSED_NOTICE = '원래대로 돌아와서 답하지 않아도 돼요';
+
+/** 답해야 하는 변경을 강조하는 주황(시안 1) */
+export const ANSWER_COLOR = '#F76707';
+
+/** 변경 상세: 아직 답하지 않은 변경 제목 아래에 띄우는 강조 문구 */
+export const ANSWER_NEEDED = '내 답이 필요한 변경이에요. 아래에서 답해주세요';

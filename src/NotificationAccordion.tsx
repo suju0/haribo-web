@@ -149,13 +149,15 @@ export function NotificationAccordion({ onClose }: { onClose: () => void }) {
           */}
           <div className="notify-guide-cols">
             {GUIDE_COLS.map((c) => (
-              <div key={c.x} style={{ position: 'relative', flexShrink: 0, width: c.w, height: 244, overflow: 'hidden' }}>
-                <img
-                  src={guideSvg}
-                  alt=""
-                  draggable={false}
-                  style={{ position: 'absolute', top: 0, left: -c.x, width: 870, height: 244, maxWidth: 'none' }}
-                />
+              <div key={c.x} className="notify-guide-box">
+                <div style={{ position: 'relative', flexShrink: 0, width: c.w, height: 244, overflow: 'hidden' }}>
+                  <img
+                    src={guideSvg}
+                    alt=""
+                    draggable={false}
+                    style={{ position: 'absolute', top: 0, left: -c.x, width: 870, height: 244, maxWidth: 'none' }}
+                  />
+                </div>
               </div>
             ))}
           </div>

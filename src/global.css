@@ -156,24 +156,35 @@ body,
   border: 0;
 }
 
-/* 설정 방법 3단계: 칸 사이 간격만 줄다가, 칸이 겹칠 정도로 좁아지면 세로로 쌓여요. (240 + 240 + 220 + 최소 간격 32 + 양쪽 30 = 792) */
+/* 설정 방법 3단계: 단계마다 연한 회색 박스(#FAFAFA, 모서리 15)에 담아요. 박스 사이 간격은 40.
+   창이 좁아져서 박스 3개가 들어가지 않으면(박스 최소 260 × 3 + 간격 80 + 양쪽 40 = 940) 세로로 쌓여요.
+   큰 화면에서는 디자인 폭(985)까지만 커지고 왼쪽부터 놓여요. */
 .notify-guide {
   container-type: inline-size;
 }
 .notify-guide-cols {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 0 30px;
-  /* 큰 화면에서 칸 사이가 끝없이 벌어지지 않게, 디자인의 간격(약 65px)까지만 벌어지고 그 뒤로는 왼쪽(알림 아이콘 시작점)부터 그대로 놓여요.
-     240 + 240 + 220 + 간격 65 × 2 + 양쪽 30 = 890 */
-  max-width: 890px;
+  gap: 40px;
+  padding: 0 40px 48px;
+  max-width: 985px;
   box-sizing: border-box;
 }
-@container (max-width: 791px) {
+.notify-guide-box {
+  flex: 1 1 0;
+  min-width: 260px;
+  display: flex;
+  justify-content: center;
+  background: #fafafa;
+  border-radius: 15px;
+}
+@container (max-width: 939px) {
   .notify-guide-cols {
     flex-direction: column;
-    gap: 0;
+    gap: 16px;
+  }
+  .notify-guide-box {
+    flex: none;
+    width: 100%;
+    min-width: 0;
   }
 }

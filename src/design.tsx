@@ -132,13 +132,15 @@ export function IconSparkle({ size = 11 }: { size?: number }) {
 
 /* ───────── 디자인의 칩(작은 라벨) ───────── */
 
-export type ChipTone = 'orange' | 'blue' | 'blueFill' | 'gray' | 'green' | 'red' | 'purple';
+export type ChipTone = 'orange' | 'blue' | 'blueFill' | 'ai' | 'gray' | 'green' | 'red' | 'purple';
 
 const TONES: Record<ChipTone, { bg: string; color: string }> = {
   // 디자인의 주황 칩(#FFF1E0 / #E8590C)은 TDS 토큰에 정확히 같은 색이 없어서 디자인 값을 그대로 써요.
   orange: { bg: '#FFF1E0', color: '#E8590C' },
   blue: { bg: adaptive.blue50, color: adaptive.blue700 },
   blueFill: { bg: adaptive.blue500, color: '#FFFFFF' },
+  // "AI 대화에서 바꿈" 칩: 칩 색을 바꾼 뒤에도 원래 파란 채움(흰 글자)을 그대로 써요.
+  ai: { bg: adaptive.blue500, color: '#FFFFFF' },
   gray: { bg: adaptive.grey100, color: adaptive.grey600 },
   green: { bg: adaptive.green50, color: adaptive.green700 },
   red: { bg: adaptive.red50, color: adaptive.red600 },

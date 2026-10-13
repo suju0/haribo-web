@@ -30,7 +30,7 @@ import {
   taskOwner,
   taskTitle,
 } from './data';
-import { AUTO_CLOSED_NOTICE, REAPPLY_HINT } from './copy';
+import { ANSWER_COLOR, ANSWER_NEEDED, AUTO_CLOSED_NOTICE, REAPPLY_HINT, STANDALONE } from './copy';
 import { BlueFillChipWeight, Chip, IconDecision, IconEdit, IconIssue, IconSparkle, IssueFilterChip } from './design';
 
 type ReplyMode = 'none' | 'question' | 'request';
@@ -694,16 +694,19 @@ export function Detail({
           {!cli && <Chip tone="gray">{`#${change.issueNo}`}</Chip>}
           {cli ? (
             <>
-              <Chip tone={reviewStatus(change) === '대기' ? 'orange' : reviewStatus(change) === '답함' ? 'green' : 'gray'}>
-                {reviewStatus(change)}
-              </Chip>
+              {/* 대체 버전: 답해야 하는 변경은 "대기" 칩 대신 제목 아래의 주황 안내로 알려요 */}
+              {!(STANDALONE && reviewStatus(change) === '대기') && (
+                <Chip tone={reviewStatus(change) === '대기' ? 'orange' : reviewStatus(change) === '답함' ? 'green' : 'gray'}>
+                  {reviewStatus(change)}
+                </Chip>
+              )}
               {fresh && <Chip tone="blueFill">새 결정 사항</Chip>}
               {change.revertedTo && <Chip tone="purple">되돌림</Chip>}
               {change.isNewVersion && change.version && <Chip tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
               {change.source === 'code' ? (
                 <Chip tone="gray">코드에서 바꿈</Chip>
               ) : (
-                <Chip tone="blueFill" icon={<IconSparkle />}>
+                <Chip tone="ai" icon={<IconSparkle />}>
                   AI 대화에서 바꿈
                 </Chip>
               )}
@@ -726,12 +729,12 @@ export function Detail({
             <Chip tone={fresh ? 'blueFill' : 'orange'}>{fresh ? '신규' : change.decisionState}</Chip>
           )}
           {ai && (
-            <Chip tone="blueFill" icon={<IconSparkle />}>
+            <Chip tone="ai" icon={<IconSparkle />}>
               AI가 PR에서 찾음
             </Chip>
           )}
           {isAiChat(change) && (
-            <Chip tone="blueFill" icon={<IconSparkle />}>
+            <Chip tone="ai" icon={<IconSparkle />}>
               AI 대화에서 바꿈
             </Chip>
           )}
@@ -751,6 +754,27 @@ export function Detail({
           </div>
         )}
       </div>
+
+      {/* 답해야 하는 변경: 제목 아래 주황 강조 (대체 버전 · CLI 탭) */}
+      {STANDALONE && cli && reviewStatus(change) === '대기' && !showNotice && (
+        <div style={{ marginTop: 12 }}>
+          <div
+            role="note"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 16px',
+              borderRadius: 12,
+              background: ANSWER_COLOR,
+              color: '#FFFFFF',
+            }}
+          >
+            <IconEdit size={16} />
+            <span style={{ fontSize: 14, fontWeight: 500, lineHeight: '21px' }}>{ANSWER_NEEDED}</span>
+          </div>
+        </div>
+      )}
 
       {/* 누가 · 언제 · 근거 */}
       <div style={{ marginTop: 14 }}>

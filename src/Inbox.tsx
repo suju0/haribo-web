@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
-import { ANSWERED, AUTO_CLOSED_TITLE, REAPPLY_HINT, STANDALONE, TO_ANSWER } from './copy';
+import { ANSWERED, ANSWER_COLOR, AUTO_CLOSED_TITLE, REAPPLY_HINT, STANDALONE, TO_ANSWER } from './copy';
 import { NotificationAccordion } from './NotificationAccordion';
 import {
   DecisionChange,
@@ -58,7 +58,7 @@ function CliSourceChips({ change }: { change: DecisionChange }) {
       {change.source === 'code' ? (
         <Chip tone="gray">코드에서 바꿈</Chip>
       ) : (
-        <Chip tone="blueFill" icon={<IconSparkle />}>
+        <Chip tone="ai" icon={<IconSparkle />}>
           AI 대화에서 바꿈
         </Chip>
       )}
@@ -120,7 +120,7 @@ function AiChip({ change }: { change: DecisionChange }) {
   // CLI의 AI 대화에서 정해진 결정
   if (isAiChat(change)) {
     return (
-      <Chip tone="blueFill" icon={<IconSparkle />}>
+      <Chip tone="ai" icon={<IconSparkle />}>
         AI 대화에서 바꿈
       </Chip>
     );
@@ -132,7 +132,7 @@ function AiChip({ change }: { change: DecisionChange }) {
       openOnHover
       message={`PR #${change.pr?.number}에서 AI가 찾아낸 결정이에요. 실제 결정이 맞는지 확인해주세요.`}
     >
-      <Chip tone="blueFill" icon={<IconSparkle />}>
+      <Chip tone="ai" icon={<IconSparkle />}>
         AI가 PR에서 찾음
       </Chip>
     </Tooltip>
@@ -301,9 +301,29 @@ function PendingRow({ change, onOpen }: { change: DecisionChange; onOpen: (id: s
           </div>
         }
         right={
-          <Paragraph.Text typography="t7" fontWeight="medium" color={adaptive.blue500}>
-            {cli ? '답하기 ›' : ai ? '맞는지 확인 ›' : change.affectsMe ? '확인하기 ›' : '확인만 하기 ›'}
-          </Paragraph.Text>
+          cli && STANDALONE ? (
+            // 답해야 하는 변경이라는 걸 알리는 주황 버튼 (변경 상세의 "내 답이 필요한 변경이에요"와 같은 색)
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                height: 32,
+                padding: '0 14px',
+                borderRadius: 9,
+                background: ANSWER_COLOR,
+                color: '#FFFFFF',
+                fontSize: 13,
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              답하기 ›
+            </span>
+          ) : (
+            <Paragraph.Text typography="t7" fontWeight="medium" color={adaptive.blue500}>
+              {cli ? '답하기 ›' : ai ? '맞는지 확인 ›' : change.affectsMe ? '확인하기 ›' : '확인만 하기 ›'}
+            </Paragraph.Text>
+          )
         }
       />
     </div>
@@ -525,19 +545,23 @@ function IssueGroups({
               overflow: 'hidden',
             }}
           >
-            <div style={{ padding: '22px 20px 16px', display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
-              <div style={{ flexShrink: 0 }}>
-                <Paragraph.Text typography="t6" fontWeight="bold" color={adaptive.grey900}>
-                  {`이슈 #${head.issueNo}`}
-                </Paragraph.Text>
-              </div>
-              {head.issueTitle && (
-                <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  <Paragraph.Text typography="t7" color={adaptive.grey600}>
-                    {head.issueTitle}
+            {/* 머리글 여백은 "확인할 변경" 카드와 같아요 (위 24 · 아래 20) */}
+            <div style={{ padding: '24px 20px 20px' }}>
+              {/* 높이를 "확인할 변경 N"과 같은 23px로 고정해서, 이슈 제목(작은 글자)이 줄 높이를 키우지 않게 해요 */}
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0, height: 23 }}>
+                <div style={{ flexShrink: 0 }}>
+                  <Paragraph.Text typography="t6" fontWeight="bold" color={adaptive.grey900}>
+                    {`이슈 #${head.issueNo}`}
                   </Paragraph.Text>
                 </div>
-              )}
+                {head.issueTitle && (
+                  <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <Paragraph.Text typography="t7" color={adaptive.grey600}>
+                      {head.issueTitle}
+                    </Paragraph.Text>
+                  </div>
+                )}
+              </div>
             </div>
             {g.map((c) =>
               isAutoClosed(c) ? (
