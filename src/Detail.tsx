@@ -61,14 +61,17 @@ function SectionTitle({
   children,
   description,
   bottom = 12,
+  right,
 }: {
   children: string;
   description?: string;
   /** 이 블록 아래 여백(px) */
   bottom?: number;
+  /** 제목 줄 오른쪽에 놓을 내용 (예: 안내 문구) */
+  right?: React.ReactNode;
 }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: TITLE_SUBTITLE_GAP, margin: `32px 0 ${bottom}px` }}>
+  const text = (
+    <>
       <Paragraph.Text typography="t6" fontWeight="bold" color={adaptive.grey900}>
         {children}
       </Paragraph.Text>
@@ -77,8 +80,17 @@ function SectionTitle({
           {description}
         </Paragraph.Text>
       )}
-    </div>
+    </>
   );
+  if (right) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, margin: `32px 0 ${bottom}px` }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: TITLE_SUBTITLE_GAP, flex: 1, minWidth: 0 }}>{text}</div>
+        <div style={{ flexShrink: 0 }}>{right}</div>
+      </div>
+    );
+  }
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: TITLE_SUBTITLE_GAP, margin: `32px 0 ${bottom}px` }}>{text}</div>;
 }
 
 /** 변경 전 / 변경 후 박스 */
@@ -601,6 +613,23 @@ function taskCheckState(t: AffectedTask, viewerRole?: string): TaskCheckState {
   return mine ? 'mine' : 'other';
 }
 
+/** "지금 해야 할 일" 제목 오른쪽에 붙는 안내: 이전에 "관계있다"로 답했던 변경이 다시 바뀌었을 때 (연한 주황 박스 + 주의 아이콘) */
+function ReapplyNotice() {
+  return (
+    <div
+      role="note"
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 10, background: '#FFF1E0', color: '#B54708' }}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+        <path d="M12 7.5v5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="12" cy="16.5" r="1.2" fill="currentColor" />
+      </svg>
+      <span style={{ fontSize: 13, fontWeight: 500, lineHeight: '19.5px' }}>{REAPPLY_HINT}</span>
+    </div>
+  );
+}
+
 export function Detail({
   change,
   total,
@@ -939,7 +968,16 @@ export function Detail({
                 {taskOwner(t)}
               </Paragraph.Text>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                {t.state ? (
+                {STANDALONE && cli && t.state ? (
+                  // 대체 버전: 담당자가 답한 상태에 따라 [대기] → [확인 완료] → [작업 완료]
+                  <>
+                    {t.state === 'pending' && <Chip tone="orange">대기</Chip>}
+                    {(t.state === 'accepted' || t.state === 'rejected') &&
+                      (t.workDone ? <Chip tone="green">작업 완료</Chip> : <Chip tone="blue">확인 완료</Chip>)}
+                    {t.state === 'auto-closed' && <Chip tone="gray">자동 닫힘</Chip>}
+                    {t.state === 'accepted' && t.awareness && <Chip tone="gray">{t.awareness === '몰랐음' ? '몰랐다' : '알았다'}</Chip>}
+                  </>
+                ) : t.state ? (
                   // CLI 시험 데이터: 담당자가 실제로 한 답을 그대로 보여줘요.
                   <>
                     {t.state === 'pending' && <Chip tone="orange">{cli ? '대기' : '확인 대기'}</Chip>}
@@ -1004,7 +1042,11 @@ export function Detail({
         <SectionTitle bottom={0}>내 답변</SectionTitle>
       ) : cli ? (
         // "현재 상태"와 같은 타이틀 / 서브 타이틀(13px, grey600) 블록이라 간격도 같아요. 아래 여백은 0으로 두어 기존 간격(질문까지 16px)을 유지해요.
-        <SectionTitle description={change.recommendedAction} bottom={0}>
+        <SectionTitle
+          description={change.recommendedAction}
+          bottom={0}
+          right={STANDALONE && change.previousAnswer?.relation === '관계있다' && !change.answer ? <ReapplyNotice /> : undefined}
+        >
           지금 해야 할 일
         </SectionTitle>
       ) : (
@@ -1025,7 +1067,7 @@ export function Detail({
       ) : cli ? (
         <>
           {/* 확정안 3 · 4: 이전 버전에 "관계있다"로 답했던 사람에게만 붙여요 */}
-          {change.previousAnswer?.relation === '관계있다' && !change.answer && (
+          {!STANDALONE && change.previousAnswer?.relation === '관계있다' && !change.answer && (
             <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: adaptive.grey100 }}>
               <Paragraph.Text typography="t7" color={adaptive.grey700}>
                 {REAPPLY_HINT}

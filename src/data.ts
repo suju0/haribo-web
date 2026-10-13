@@ -24,6 +24,8 @@ export interface AffectedTask {
   awareness?: '몰랐음' | '이미 알고 있었음';
   /** 이미 완료된 작업이면 true (확인 대기 때문에 다시 열 수도 있어요) */
   completed?: boolean;
+  /** 대체 버전: 담당자가 이 변경에 답한 뒤 실제 작업까지 끝냈으면 true (처리 상태 "작업 완료") */
+  workDone?: boolean;
 }
 
 /** 답하기: 관계있다/관계없다 → (관계있다면) 알았다/몰랐다, (관계없다면) 이유 */
