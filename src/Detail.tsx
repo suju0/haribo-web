@@ -476,6 +476,7 @@ function PeerBar({
               type="button"
               role="tab"
               aria-selected={active}
+              aria-label={`v${p.version?.to ?? ''} (${reviewStatus(p)})`}
               onClick={() => !active && onSelect(p.id)}
               style={{
                 display: 'inline-flex',
@@ -490,7 +491,7 @@ function PeerBar({
               }}
             >
               <Paragraph.Text typography="st12" fontWeight={active ? 'bold' : 'medium'} color={active ? adaptive.blue700 : adaptive.grey600}>
-                {`v${p.version?.to ?? ''} · ${reviewStatus(p)}`}
+                {`v${p.version?.to ?? ''}`}
               </Paragraph.Text>
             </button>
           );

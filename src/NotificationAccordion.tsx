@@ -51,7 +51,7 @@ function SmallButton({ children, onClick, width, ...rest }: { children: string; 
         color: '#fff',
         fontFamily: 'inherit',
         fontSize: 12,
-        fontWeight: 600,
+        fontWeight: 500,
         lineHeight: 1,
         whiteSpace: 'nowrap',
         cursor: 'pointer',

@@ -2,6 +2,7 @@ import { createContext, forwardRef, useContext, useEffect, useState } from 'reac
 import type { CSSProperties, ReactNode } from 'react';
 import { Badge, Paragraph, Tooltip } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
+import { STANDALONE } from './copy';
 
 /* ───────── 디자인(Browser · A2 / A3)에서 가져온 아이콘 ─────────
  * 좌표는 원본 SVG의 값을 그대로 쓰고, viewBox만 각 아이콘 위치로 맞췄어요. */
@@ -122,9 +123,9 @@ export function IconClose({ size = 10 }: { size?: number }) {
 export function IconSparkle({ size = 11 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="420 722 11 11" aria-hidden>
-      <path d='M424.107 725.002C424.114 724.969 424.16 724.969 424.167 725.002C424.51 726.679 425.821 727.99 427.498 728.333C427.531 728.34 427.531 728.386 427.498 728.393C425.821 728.736 424.51 730.047 424.167 731.724C424.16 731.757 424.114 731.757 424.107 731.724C423.764 730.047 422.453 728.736 420.776 728.393C420.743 728.386 420.743 728.34 420.776 728.333C422.453 727.99 423.764 726.679 424.107 725.002Z' fill='#fff' />
-      <path d='M423.39 724.775C423.615 724.018 424.738 724.044 424.903 724.851C425.186 726.234 426.266 727.314 427.649 727.597C428.482 727.767 428.482 728.958 427.649 729.129C426.266 729.411 425.186 730.492 424.903 731.875C424.733 732.708 423.542 732.708 423.371 731.875C423.089 730.492 422.008 729.411 420.625 729.129C419.792 728.958 419.792 727.767 420.625 727.597L420.754 727.568C422.075 727.247 423.097 726.191 423.371 724.851L423.39 724.775ZM424.137 726.878C423.752 727.472 423.246 727.978 422.652 728.363C423.246 728.748 423.752 729.254 424.137 729.847C424.522 729.254 425.028 728.748 425.622 728.363C425.028 727.978 424.522 727.472 424.137 726.878Z' fill='#fff' />
-      <path d='M428.366 722.73C428.428 722.423 428.866 722.423 428.929 722.73C429.068 723.407 429.597 723.937 430.274 724.075C430.581 724.138 430.581 724.576 430.274 724.639C429.597 724.777 429.068 725.307 428.929 725.984C428.866 726.291 428.428 726.291 428.366 725.984C428.227 725.307 427.698 724.777 427.02 724.639C426.714 724.576 426.714 724.138 427.02 724.075C427.698 723.937 428.227 723.407 428.366 722.73Z' fill='#fff' />
+      <path d='M424.107 725.002C424.114 724.969 424.16 724.969 424.167 725.002C424.51 726.679 425.821 727.99 427.498 728.333C427.531 728.34 427.531 728.386 427.498 728.393C425.821 728.736 424.51 730.047 424.167 731.724C424.16 731.757 424.114 731.757 424.107 731.724C423.764 730.047 422.453 728.736 420.776 728.393C420.743 728.386 420.743 728.34 420.776 728.333C422.453 727.99 423.764 726.679 424.107 725.002Z' fill='currentColor' />
+      <path d='M423.39 724.775C423.615 724.018 424.738 724.044 424.903 724.851C425.186 726.234 426.266 727.314 427.649 727.597C428.482 727.767 428.482 728.958 427.649 729.129C426.266 729.411 425.186 730.492 424.903 731.875C424.733 732.708 423.542 732.708 423.371 731.875C423.089 730.492 422.008 729.411 420.625 729.129C419.792 728.958 419.792 727.767 420.625 727.597L420.754 727.568C422.075 727.247 423.097 726.191 423.371 724.851L423.39 724.775ZM424.137 726.878C423.752 727.472 423.246 727.978 422.652 728.363C423.246 728.748 423.752 729.254 424.137 729.847C424.522 729.254 425.028 728.748 425.622 728.363C425.028 727.978 424.522 727.472 424.137 726.878Z' fill='currentColor' />
+      <path d='M428.366 722.73C428.428 722.423 428.866 722.423 428.929 722.73C429.068 723.407 429.597 723.937 430.274 724.075C430.581 724.138 430.581 724.576 430.274 724.639C429.597 724.777 429.068 725.307 428.929 725.984C428.866 726.291 428.428 726.291 428.366 725.984C428.227 725.307 427.698 724.777 427.02 724.639C426.714 724.576 426.714 724.138 427.02 724.075C427.698 723.937 428.227 723.407 428.366 722.73Z' fill='currentColor' />
     </svg>
   );
 }
@@ -146,6 +147,19 @@ const TONES: Record<ChipTone, { bg: string; color: string }> = {
 };
 
 /**
+ * 대체 버전(STANDALONE) 칩: 토스 앱의 [보기] / [받기] 칩을 그대로 따라요.
+ *  - 크기: 높이 32, 글자 13px, 안쪽 여백 위아래 6 · 좌우 13, 모서리 9 (첨부 이미지를 픽셀로 재서 환산)
+ *  - 색: 파랑 계열 = [보기] (배경 #E9F1FC, 글자 #1F72EA), 회색 계열 = [받기] (배경 #F1F2F4, 글자 #4A4D52)
+ *  - [대기](주황) · 초록 · 빨강 · 보라는 색은 그대로, 크기만 같아요.
+ *  - 글자 굵기는 모두 같은 Medium(500)이에요.
+ */
+const STANDALONE_TONES: Partial<Record<ChipTone, { bg: string; color: string }>> = {
+  blue: { bg: '#E9F1FC', color: '#1F72EA' },
+  blueFill: { bg: '#E9F1FC', color: '#1F72EA' },
+  gray: { bg: '#F1F2F4', color: '#4A4D52' },
+};
+
+/**
  * CLI 탭 칩 전체의 글자 굵기.
  * 값이 없으면 TDS 기본(굵게 700)이고, CLI 탭에서는 Medium(500)을 써요.
  */
@@ -156,7 +170,7 @@ export const Chip = forwardRef<HTMLSpanElement, { tone: ChipTone; children: Reac
   { tone, children, icon, ...rest },
   ref
 ) {
-  const t = TONES[tone];
+  const t = (STANDALONE && STANDALONE_TONES[tone]) || TONES[tone];
   const blueFillWeight = useContext(BlueFillChipWeight);
   return (
     <Badge
@@ -170,8 +184,9 @@ export const Chip = forwardRef<HTMLSpanElement, { tone: ChipTone; children: Reac
           // Badge는 색을 인라인 color / backgroundColor로 직접 지정해서, 같은 속성으로 덮어써요.
           color: t.color,
           backgroundColor: t.bg,
-          '--badge-border-radius': '6px',
-          '--badge-padding': '2.5px 8px',
+          '--badge-border-radius': STANDALONE ? '9px' : '6px',
+          '--badge-padding': STANDALONE ? '6px 13px' : '2.5px 8px',
+          ...(STANDALONE ? { '--badge-font-size': '13px', lineHeight: '20px' } : {}),
           display: 'inline-flex',
           alignItems: 'center',
           gap: 4,
@@ -181,7 +196,7 @@ export const Chip = forwardRef<HTMLSpanElement, { tone: ChipTone; children: Reac
     >
       {icon}
       {/* Badge가 루트에 굵기를 직접 지정하므로, 글자 쪽에서 굵기를 바꿔요. */}
-      {blueFillWeight ? <span style={{ fontWeight: blueFillWeight }}>{children}</span> : children}
+      {STANDALONE || blueFillWeight ? <span style={{ fontWeight: STANDALONE ? 500 : blueFillWeight }}>{children}</span> : children}
     </Badge>
   );
 });
@@ -308,7 +323,7 @@ export function IssueFilterChip({ children, active = true }: { children: ReactNo
         flexShrink: 0,
       }}
     >
-      <Paragraph.Text typography="t7" fontWeight="semibold" color={active ? '#FFFFFF' : adaptive.grey600}>
+      <Paragraph.Text typography="t7" fontWeight={STANDALONE ? 'regular' : 'semibold'} color={active ? '#FFFFFF' : adaptive.grey600}>
         {children}
       </Paragraph.Text>
     </span>
