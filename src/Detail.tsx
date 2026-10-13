@@ -30,7 +30,7 @@ import {
   taskOwner,
   taskTitle,
 } from './data';
-import { ANSWER_COLOR, ANSWER_NEEDED, AUTO_CLOSED_NOTICE, REAPPLY_HINT, STANDALONE } from './copy';
+import { ANSWER_NEEDED, AUTO_CLOSED_NOTICE, REAPPLY_HINT, STANDALONE } from './copy';
 import { BlueFillChipWeight, Chip, IconDecision, IconEdit, IconIssue, IconSparkle, IssueFilterChip } from './design';
 
 type ReplyMode = 'none' | 'question' | 'request';
@@ -762,21 +762,29 @@ export function Detail({
       {/* 답해야 하는 변경: 제목 아래 주황 강조 (대체 버전 · CLI 탭) */}
       {STANDALONE && cli && reviewStatus(change) === '대기' && !showNotice && (
         <div style={{ marginTop: 12 }}>
-          <div
-            role="note"
+          {/* 파랑 윤곽 버튼: 누르면 아래 "지금 해야 할 일"(답하는 영역)으로 부드럽게 이동해요 */}
+          <button
+            type="button"
+            onClick={() => document.getElementById('answer-area')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              padding: '10px 16px',
+              padding: '9px 14px',
               borderRadius: 12,
-              background: ANSWER_COLOR,
-              color: '#FFFFFF',
+              border: `1.5px solid ${adaptive.blue500}`,
+              background: adaptive.background,
+              color: '#1F72EA',
+              fontFamily: 'inherit',
+              cursor: 'pointer',
             }}
           >
             <IconEdit size={16} />
             <span style={{ fontSize: 14, fontWeight: 500, lineHeight: '21px' }}>{ANSWER_NEEDED}</span>
-          </div>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <path d="M3.5 6 8 10.5 12.5 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
         </div>
       )}
 
@@ -968,7 +976,8 @@ export function Detail({
         </>
       )}
 
-      {/* 지금 해야 할 일 + 답하기 */}
+      {/* 지금 해야 할 일 + 답하기 (위 "내 답이 필요한 변경이에요" 버튼이 여기로 이동시켜요) */}
+      <span id="answer-area" style={{ display: 'block', height: 0 }} />
       {showNotice ? null : cli && change.answer ? (
         // 답한 뒤에는 "지금 해야 할 일" 대신 "내 답변"(아래 박스에 답함 · 관계 · 알았나 · 답한 시각)만 보여줘요.
         <SectionTitle bottom={0}>내 답변</SectionTitle>

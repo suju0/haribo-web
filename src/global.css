@@ -157,7 +157,7 @@ body,
 }
 
 /* 설정 방법 3단계: 단계마다 연한 회색 박스(#FAFAFA, 모서리 15)에 담아요. 박스 사이 간격은 40.
-   창이 좁아져서 박스 3개가 들어가지 않으면(박스 최소 260 × 3 + 간격 80 + 양쪽 40 = 940) 세로로 쌓여요.
+   창이 좁아져서 박스 3개가 들어가지 않으면(박스 최소 260 × 3 + 간격 80 + 양쪽 30 = 920) 세로로 쌓여요.
    큰 화면에서는 디자인 폭(985)까지만 커지고 왼쪽부터 놓여요. */
 .notify-guide {
   container-type: inline-size;
@@ -165,7 +165,8 @@ body,
 .notify-guide-cols {
   display: flex;
   gap: 40px;
-  padding: 0 40px 48px;
+  /* 첫 박스는 위 알림 아이콘과 같은 왼쪽 30px에서 시작해요 */
+  padding: 0 30px 48px;
   max-width: 985px;
   box-sizing: border-box;
 }
@@ -177,7 +178,7 @@ body,
   background: #fafafa;
   border-radius: 15px;
 }
-@container (max-width: 939px) {
+@container (max-width: 919px) {
   .notify-guide-cols {
     flex-direction: column;
     gap: 16px;

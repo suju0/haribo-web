@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
-import { ANSWERED, ANSWER_COLOR, AUTO_CLOSED_TITLE, REAPPLY_HINT, STANDALONE, TO_ANSWER } from './copy';
+import { ANSWERED, AUTO_CLOSED_TITLE, REAPPLY_HINT, STANDALONE, TO_ANSWER } from './copy';
 import { NotificationAccordion } from './NotificationAccordion';
 import {
   DecisionChange,
@@ -314,7 +314,7 @@ function PendingRow({ change, onOpen }: { change: DecisionChange; onOpen: (id: s
         }
         right={
           cli && STANDALONE ? (
-            // 답해야 하는 변경이라는 걸 알리는 주황 버튼 (변경 상세의 "내 답이 필요한 변경이에요"와 같은 색)
+            // 답해야 하는 변경이라는 걸 알리는 파란 버튼 (다른 칩들과 같은 파랑 · 토스의 행동 버튼처럼)
             <span
               style={{
                 display: 'inline-flex',
@@ -322,8 +322,8 @@ function PendingRow({ change, onOpen }: { change: DecisionChange; onOpen: (id: s
                 height: 32,
                 padding: '0 14px',
                 borderRadius: 9,
-                background: ANSWER_COLOR,
-                color: '#FFFFFF',
+                background: '#E9F1FC',
+                color: '#1F72EA',
                 fontSize: 13,
                 fontWeight: 500,
                 whiteSpace: 'nowrap',
