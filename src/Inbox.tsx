@@ -354,7 +354,7 @@ function DoneRow({
             <ChangeLine change={change} />
             {superseded && (
               <Paragraph.Text typography="st12" color={adaptive.grey500}>
-                {`새 버전 #${change.supersededBy!.issueNo}${change.supersededBy!.version ? `(v${change.supersededBy!.version})으로` : '로'} 대체됐어요`}
+                {change.supersededBy!.version ? `새 버전 v${change.supersededBy!.version}으로 대체됐어요` : `새 버전 #${change.supersededBy!.issueNo}로 대체됐어요`}
               </Paragraph.Text>
             )}
             <Meta change={change} />

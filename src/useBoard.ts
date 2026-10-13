@@ -41,8 +41,9 @@ export function useBoard(
     goDetail();
   };
 
-  const openIssue = (issueNo: number) => {
-    const target = changes.find((c) => c.issueNo === issueNo);
+  /** 같은 이슈의 여러 버전(#3 v2, #3 v3)은 버전 번호로 골라요 */
+  const openIssue = (issueNo: number, version?: number) => {
+    const target = changes.find((c) => c.issueNo === issueNo && (version === undefined || c.version?.to === version));
     if (target) open(target.id);
   };
 

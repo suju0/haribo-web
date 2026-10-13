@@ -15,7 +15,7 @@ export const ANSWERED = STANDALONE ? '확인한 변경' : '답한 변경';
 export const AUTO_CLOSED_TITLE = STANDALONE ? '기존 자동 닫힘' : '자동으로 닫힌 변경';
 
 /** 이미 "관계있다"로 답한 뒤 새 알림이 왔을 때 붙이는 안내 */
-export const REAPPLY_HINT = '이미 반영하셨다면 원래대로 다시 고쳐야 해요';
+export const REAPPLY_HINT = '이미 반영했다면 다시 고쳐주세요';
 
 /** 상세를 보는 중에 원래 값으로 돌아와서 자동으로 닫혔을 때 띄우는 한 줄 */
 export const AUTO_CLOSED_NOTICE = '원래대로 돌아와서 답하지 않아도 돼요';

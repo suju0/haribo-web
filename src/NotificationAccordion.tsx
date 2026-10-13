@@ -37,17 +37,17 @@ const STEPS = [
     title: '알림 권한을 허용으로 변경하세요',
     lines: ['사이트 설정 메뉴에서', '알림 항목을 찾아 허용으로 변경합니다'],
     img: step2,
-    imgWidth: 210,
+    imgWidth: 240,
     imgTop: 0,
-    ratio: '210 / 100',
+    ratio: '240 / 100',
   },
   {
     title: '이제 알림을 받을 수 있어요',
     lines: ['설정 변경 후 이 화면으로 돌아와', '권한을 다시 확인해 주세요'],
     img: step3,
-    imgWidth: 193,
-    imgTop: 40,
-    ratio: '193 / 32',
+    imgWidth: 220,
+    imgTop: 20,
+    ratio: '220 / 60',
   },
 ];
 
@@ -167,24 +167,24 @@ export function NotificationAccordion({ onClose }: { onClose: () => void }) {
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-              gap: 30,
-              padding: '0 30px 36px',
+              gap: 0,
+              padding: '0 50px 0',
             }}
           >
             {STEPS.map((s) => (
               <div
                 key={s.title}
-                style={{ padding: '22px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                style={{ padding: '22px 0 22px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
               >
                 <div style={{ width: '100%', height: 100, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
                   <img
                     src={s.img}
                     alt=""
                     draggable={false}
-                    style={{ width: `min(${s.imgWidth}px, 100%)`, aspectRatio: s.ratio, display: 'block', marginTop: s.imgTop, borderRadius: s.imgTop ? 0 : 15 }}
+                    style={{ width: `min(${s.imgWidth}px, 100%)`, aspectRatio: s.ratio, display: 'block', marginTop: s.imgTop }}
                   />
                 </div>
-                <div style={{ marginTop: 34, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 2 }}>
+                <div style={{ marginTop: 35, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 2 }}>
                   <Paragraph.Text typography="t6" fontWeight="bold" color={adaptive.grey900} style={{ lineHeight: '24px' }}>
                     {s.title}
                   </Paragraph.Text>

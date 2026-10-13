@@ -400,13 +400,16 @@ function PeerBar({
       >
         {peers.map((p) => {
           const selected = p.id === currentId;
+          // 같은 이슈 번호가 여러 버전이면 "이슈 #4 · v3"처럼 버전을 붙여서 구분해요.
+          const multi = peers.filter((x) => x.issueNo === p.issueNo).length > 1 && !!p.version;
+          const chipLabel = `이슈 #${p.issueNo}${multi ? ` · v${p.version!.to}` : ''}`;
           return (
             <Tooltip key={p.id} size="small" placement="bottom" openOnHover message={`${p.title} · ${reviewStatus(p)}`}>
               <button
                 type="button"
                 role="tab"
                 aria-selected={selected}
-                aria-label={`이슈 #${p.issueNo} ${p.title} (${reviewStatus(p)})`}
+                aria-label={`${chipLabel} ${p.title} (${reviewStatus(p)})`}
                 onClick={() => !selected && onSelect(p.id)}
                 style={{
                   position: 'relative',
@@ -419,7 +422,7 @@ function PeerBar({
                   lineHeight: 0,
                 }}
               >
-                <IssueFilterChip active={selected}>{`이슈 #${p.issueNo}`}</IssueFilterChip>
+                <IssueFilterChip active={selected}>{chipLabel}</IssueFilterChip>
                 {isPending(p) && (
                   <span
                     aria-hidden
@@ -565,7 +568,7 @@ export function Detail({
   doneTasks: Set<string>;
   onRollback: () => void;
   onNext: () => void;
-  onOpenIssue: (issueNo: number) => void;
+  onOpenIssue: (issueNo: number, version?: number) => void;
   onBack: () => void;
 }) {
   const [mode, setMode] = useState<ReplyMode>('none');
@@ -709,7 +712,7 @@ export function Detail({
       {closed && (
         <div style={{ background: adaptive.grey50, borderRadius: 10, padding: '18px 20px', marginTop: 20 }}>
           <Paragraph.Text typography="t6" fontWeight="bold" color={adaptive.grey800}>
-            {change.supersededBy ? `새 버전(#${byIssueNo})으로 대체됐어요` : `새 버전(#${byIssueNo})으로 대체되어 자동으로 닫혔어요`}
+            {change.supersededBy ? (change.supersededBy.version ? `새 버전(v${change.supersededBy.version})으로 대체됐어요` : `새 버전(#${byIssueNo})으로 대체됐어요`) :`새 버전(#${byIssueNo})으로 대체되어 자동으로 닫혔어요`}
           </Paragraph.Text>
           <div style={{ marginTop: 4 }}>
             <Paragraph.Text typography="t7" color={adaptive.grey600}>
@@ -904,8 +907,8 @@ export function Detail({
 
       {showNotice ? null : closed ? (
         <div style={{ marginTop: 16 }}>
-          <Button size="large" display="block" onClick={() => onOpenIssue(byIssueNo!)}>
-            {`새 버전 #${byIssueNo} 보러 가기`}
+          <Button size="large" display="block" onClick={() => onOpenIssue(byIssueNo!, change.supersededBy?.version)}>
+            {change.supersededBy?.version ? `새 버전 v${change.supersededBy.version} 보러 가기` : `새 버전 #${byIssueNo} 보러 가기`}
           </Button>
         </div>
       ) : cli ? (
