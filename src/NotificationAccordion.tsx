@@ -9,46 +9,22 @@ import { useId, useLayoutEffect, useRef, useState } from 'react';
 import { Paragraph } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
 import { IconBellOff, IconClose } from './design';
-import step1 from './assets/notify-step1.png';
-import step2 from './assets/notify-step2.png';
-import step3 from './assets/notify-step3.png';
+// 디자인 파일(Browser Notification_설정방법.svg)을 벡터 그대로 써요. 그림 3개와 문구가 한 파일에 들어 있어요.
+import guideSvg from './assets/notify-guide.svg';
 
 /**
  * 펼쳤을 때 머리글의 [허용] [차단] 버튼 표시 여부. 디자인에서 빠져서 숨겨 뒀어요. 다시 보여주려면 true로 바꾸면 돼요.
  */
 const SHOW_ALLOW_BLOCK_BUTTONS = false;
 
-/** 펼쳐지는 영역의 배경 */
-const PANEL_BG = '#FFFFFF';
-
 /** 펼치는 데 걸리는 시간(ms). global.css 의 .notify-panel transition 과 같아야 해요. */
 const NOTIFY_OPEN_MS = 420;
 
+/** 그림 안의 글자는 벡터라서 읽히지 않아요. 같은 내용을 스크린 리더용으로 따로 둬요. */
 const STEPS = [
-  {
-    title: '사이트 정보 아이콘을 클릭',
-    lines: ['브라우저에서 주소창 왼쪽의', '자물쇠 또는 사이트 정보 아이콘을 클릭합니다'],
-    img: step1,
-    imgWidth: 240,
-    imgTop: 0,
-    ratio: '240 / 100',
-  },
-  {
-    title: '알림 권한을 허용으로 변경하세요',
-    lines: ['사이트 설정 메뉴에서', '알림 항목을 찾아 허용으로 변경합니다'],
-    img: step2,
-    imgWidth: 240,
-    imgTop: 0,
-    ratio: '240 / 100',
-  },
-  {
-    title: '이제 알림을 받을 수 있어요',
-    lines: ['설정 변경 후 이 화면으로 돌아와', '권한을 다시 확인해 주세요'],
-    img: step3,
-    imgWidth: 220,
-    imgTop: 20,
-    ratio: '220 / 60',
-  },
+  { title: '사이트 정보 아이콘을 클릭', lines: ['브라우저에서 주소창 왼쪽의', '자물쇠 또는 사이트 정보 아이콘을 클릭합니다'] },
+  { title: '알림 권한을 허용으로 변경하세요', lines: ['사이트 설정 메뉴에서', '알림 항목을 찾아 허용으로 변경합니다'] },
+  { title: '이제 알림을 받을 수 있어요', lines: ['설정 변경 후 이 화면으로 돌아와', '권한을 다시 확인해 주세요'] },
 ];
 
 /** 파란색 작은 버튼 (높이 30, 모서리 10) */
@@ -117,10 +93,6 @@ export function NotificationAccordion({ onClose }: { onClose: () => void }) {
         borderRadius: 14,
         background: '#F0F6FF',
         overflow: 'hidden',
-        // 펼쳤을 때만 "확인할 변경" 카드와 같은 파란 테두리(1px, blue100). outline은 안쪽 내용 위에 그려져서 흰 영역에도 보여요.
-        outline: `1px solid ${open ? adaptive.blue100 : 'transparent'}`,
-        outlineOffset: -1,
-        transition: 'outline-color 240ms ease-out',
       }}
     >
       {/* 머리글: 접힘 / 펼침에 따라 문구와 버튼이 바뀌어요 */}
@@ -161,44 +133,20 @@ export function NotificationAccordion({ onClose }: { onClose: () => void }) {
       </div>
 
       {/* 펼침 영역: 높이가 0 → 내용 높이로 부드럽게 늘어나요 */}
-      <div ref={panelRef} id={panelId} className="notify-panel" data-open={open} aria-hidden={!open} style={{ background: PANEL_BG }}>
-        <div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-              gap: 0,
-              padding: '0 50px 0',
-            }}
-          >
-            {STEPS.map((s) => (
-              <div
-                key={s.title}
-                style={{ padding: '22px 0 22px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-              >
-                <div style={{ width: '100%', height: 100, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-                  <img
-                    src={s.img}
-                    alt=""
-                    draggable={false}
-                    style={{ width: `min(${s.imgWidth}px, 100%)`, aspectRatio: s.ratio, display: 'block', marginTop: s.imgTop }}
-                  />
-                </div>
-                <div style={{ marginTop: 35, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 2 }}>
-                  <Paragraph.Text typography="t6" fontWeight="bold" color={adaptive.grey900} style={{ lineHeight: '24px' }}>
-                    {s.title}
-                  </Paragraph.Text>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    {s.lines.map((l) => (
-                      <span key={l} style={{ fontSize: 12, lineHeight: '20px', color: adaptive.grey700 }}>
-                        {l}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
+      <div ref={panelRef} id={panelId} className="notify-panel" data-open={open} aria-hidden={!open}>
+        <div style={{ padding: '0 5px' }}>
+          {/* 디자인(870 × 244)이 안내 창 폭 안에서 가운데로 놓이고, 좁아지면 같은 비율로 줄어요 */}
+          <img
+            src={guideSvg}
+            alt=""
+            draggable={false}
+            style={{ display: 'block', width: '100%', maxWidth: 870, aspectRatio: '870 / 244', margin: '0 auto' }}
+          />
+          <ol className="sr-only">
+            {STEPS.map((st) => (
+              <li key={st.title}>{`${st.title}. ${st.lines.join(' ')}`}</li>
             ))}
-          </div>
+          </ol>
         </div>
       </div>
     </div>
