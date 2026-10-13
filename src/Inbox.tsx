@@ -46,7 +46,8 @@ const useCli = () => useContext(CliCtx);
 /** 확인할 변경 상태 칩: 대기 / 답함 / 대체됨 (자동 닫힘은 화면에 나오지 않아요) */
 function ReviewStatusChip({ change }: { change: DecisionChange }) {
   const status = reviewStatus(change);
-  const tone: ChipTone = status === '대기' ? 'orange' : status === '답함' ? 'green' : 'gray';
+  // 대기 = 주황, 답함 = 파란 채움, 대체됨 = 회색. 목록 왼쪽 같은 칸에서 한눈에 구분돼요.
+  const tone: ChipTone = status === '대기' ? 'orange' : status === '답함' ? (STANDALONE ? 'blueFill' : 'green') : 'gray';
   return <Chip tone={tone}>{status}</Chip>;
 }
 
@@ -72,7 +73,7 @@ function CliTags({ change }: { change: DecisionChange }) {
     <>
       {isNewDecision(change) && <Chip tone="blueFill">새 결정 사항</Chip>}
       {change.isNewVersion && change.version && <Chip tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
-      {change.issueStatus === '완료' && <Chip tone="green">이슈 완료</Chip>}
+      {!STANDALONE && change.issueStatus === '완료' && <Chip tone="green">이슈 완료</Chip>}
     </>
   );
 }
@@ -88,7 +89,7 @@ function CliMeta({ change }: { change: DecisionChange }) {
       {change.issueTitle && (
         <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           <Paragraph.Text typography="st12" color={grey}>
-            {`· ${change.issueTitle}`}
+            {`· ${change.issueTitle}${STANDALONE && change.issueStatus === '완료' ? ' (완료된 이슈)' : ''}`}
           </Paragraph.Text>
         </div>
       )}
@@ -335,6 +336,7 @@ function DoneRow({
         verticalPadding="large"
         leftAlignment="top"
         onClick={() => onOpen(change.id)}
+        left={cli && STANDALONE ? <KindChip change={change} /> : undefined}
         contents={
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -343,7 +345,7 @@ function DoneRow({
               </Paragraph.Text>
               <VersionKind change={change} />
               <AiChip change={change} />
-              {cli ? (
+              {cli && STANDALONE ? null : cli ? (
                 <Chip tone={superseded ? 'gray' : 'green'}>{superseded ? '대체됨' : '답함'}</Chip>
               ) : (
                 <Chip tone={isNewDecision(change) ? 'blueFill' : 'gray'}>
