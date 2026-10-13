@@ -32,7 +32,7 @@ import {
   taskTitle,
 } from './data';
 import { TaskCheck, type TaskCheckState } from './TaskCheck';
-import { CheckMotionSwitch } from './checkMotion';
+import { CheckMotionSwitch, setCheckMotion } from './checkMotion';
 import { ANSWER_NEEDED, AUTO_CLOSED_NOTICE, REAPPLY_HINT, STANDALONE } from './copy';
 import { BlueFillChipWeight, Chip, IconDecision, IconEdit, IconIssue, IconSparkle, IssueFilterChip } from './design';
 
@@ -47,9 +47,12 @@ const SHOW_AGENT_CONTEXT_IN_CLI = false;
 
 /**
  * 작업 표 체크 아이콘의 움직임 두 가지(토스 방식 · 기존 스프링 방식)를 비교하는 스위치 표시 여부.
- * 고르고 나면 false 로 바꿔서 숨기면 돼요. (대체 버전 전용)
+ * 토스 방식으로 정해서 지금은 숨겨 두었어요(false). 기존 스프링 방식 코드는 TaskCheck.tsx 에 그대로 남아 있고,
+ * 다시 비교하려면 true 로 바꾸면 스위치가 나와요. (대체 버전 전용)
  */
-const SHOW_CHECK_MOTION_SWITCH = true;
+const SHOW_CHECK_MOTION_SWITCH = false;
+// 스위치를 숨기는 동안에는 이전에 고른 값과 상관없이 항상 토스 방식으로 움직여요.
+if (STANDALONE && !SHOW_CHECK_MOTION_SWITCH) setCheckMotion('tds');
 
 /**
  * CLI 탭의 "이전 결정 · 되돌릴 수 있는 변경" 영역(현재 결정 · 변경일 · 변경 전 표, 이전 결정 보기 / 이전 상태로 되돌리기 버튼) 표시 여부.
