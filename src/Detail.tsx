@@ -165,7 +165,7 @@ function DecisionIssueCard({ change }: { change: DecisionChange }) {
           '이슈',
           '결정이 필요한 과제',
           change.issueTitle,
-          change.issueStatus === '완료' ? <Chip inline tone="green">이슈 완료</Chip> : undefined,
+          change.issueStatus === '완료' ? <Chip inline tone="green">{STANDALONE ? '완료된 이슈' : '이슈 완료'}</Chip> : undefined,
           STANDALONE
         )}
       {/* 대체 버전: "결정 사항 | 확정된 결과" 줄은 없애고, 같은 내용을 아래 "확정된 결과" 카드가 보여줘요 */}
@@ -699,7 +699,7 @@ export function Detail({
             <>
               {/* 대체 버전: 답해야 하는 변경은 "대기" 칩 대신 제목 아래의 주황 안내로 알려요 */}
               {!(STANDALONE && reviewStatus(change) === '대기') && (
-                <Chip inline tone={reviewStatus(change) === '대기' ? 'orange' : reviewStatus(change) === '답함' ? 'green' : 'gray'}>
+                <Chip inline tone={reviewStatus(change) === '대기' ? 'orange' : reviewStatus(change) === '답함' ? (STANDALONE ? 'blueFill' : 'green') : 'gray'}>
                   {reviewStatus(change)}
                 </Chip>
               )}
@@ -718,7 +718,7 @@ export function Detail({
                 </Chip>
               )}
               {change.foundByAi && <Chip inline tone="gray">PR에서 찾음</Chip>}
-              {change.issueStatus === '완료' && <Chip inline tone="green">이슈 완료</Chip>}
+              {change.issueStatus === '완료' && <Chip inline tone="green">{STANDALONE ? '완료된 이슈' : '이슈 완료'}</Chip>}
             </>
           ) : (
             <>
