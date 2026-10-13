@@ -117,6 +117,7 @@ function ValueBox({ label, value, after, tag }: { label: string; value: string; 
 
 /** 이슈 → 결정 사항 카드: 이슈(결정이 필요한 과제)와 결정 사항(확정된 결과)을 한 카드에 보여줘요 */
 function DecisionIssueCard({ change }: { change: DecisionChange }) {
+  if (STANDALONE && !change.issueTitle) return null;
   // 아이콘 · "이슈 | 결정이 필요한 과제" (한 줄) · 내용 (다음 줄)
   const row = (icon: React.ReactNode, label: string, desc: string, content: string, extra?: React.ReactNode, last?: boolean) => (
     <div
@@ -164,9 +165,11 @@ function DecisionIssueCard({ change }: { change: DecisionChange }) {
           '이슈',
           '결정이 필요한 과제',
           change.issueTitle,
-          change.issueStatus === '완료' ? <Chip inline tone="green">이슈 완료</Chip> : undefined
+          change.issueStatus === '완료' ? <Chip inline tone="green">이슈 완료</Chip> : undefined,
+          STANDALONE
         )}
-      {row(<IconDecision />, '결정 사항', '확정된 결과', change.title, undefined, true)}
+      {/* 대체 버전: "결정 사항 | 확정된 결과" 줄은 없애고, 같은 내용을 아래 "확정된 결과" 카드가 보여줘요 */}
+      {!STANDALONE && row(<IconDecision />, '결정 사항', '확정된 결과', change.title, undefined, true)}
     </div>
   );
 }
@@ -186,7 +189,7 @@ function NewDecisionCard({ value }: { value: string }) {
       }}
     >
       <Paragraph.Text typography="st12" color={adaptive.blue700}>
-        새로 생긴 결정
+        {STANDALONE ? '확정된 결과' : '새로 생긴 결정'}
       </Paragraph.Text>
       <Paragraph.Text typography="st11" fontWeight="medium" color={adaptive.grey900}>
         {value}
@@ -833,7 +836,7 @@ export function Detail({
         ) : (
           <>
             <ValueBox label="변경 전" value={change.before ?? '이전 값이 없어요 · 새로 생긴 결정이에요'} />
-            <ValueBox label="변경 후" value={change.after} after tag={change.revertedTo ? <Chip inline tone="purple">되돌림</Chip> : undefined} />
+            <ValueBox label={STANDALONE ? '확정된 결과' : '변경 후'} value={change.after} after tag={change.revertedTo ? <Chip inline tone="purple">되돌림</Chip> : undefined} />
           </>
         )}
       </div>
