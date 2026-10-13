@@ -6,9 +6,11 @@
  *  - other   : 다른 담당자가 이미 답함        → 연한 파랑
  *  - mine    : 내가 답한 작업(내 담당)        → 진한 파랑
  *
- * 표시가 바뀔 때(예: 내가 답해서 회색 → 진한 파랑) 토스 체크 아이콘처럼 통통 튀어요.
- * 움직임은 TDS 체크 아이콘의 스프링 값을 그대로 따랐어요:
- *   커졌다가(scale 1.1, quick: 강성 800 · 감쇠 55) → 원래 크기로 튀며 돌아옴(bounce: 강성 300 · 감쇠 15)
+ * 움직임은 TDS 체크 아이콘처럼 스프링으로 튀어요.
+ *  - 누르는 동안: 작아져요(scale 0.8, rapid: 강성 1000 · 감쇠 55)
+ *  - 놓으면: 살짝 커졌다가(1.1, quick: 강성 800 · 감쇠 55) 원래 크기로 여러 번 튕기며 돌아와요(bounce: 강성 300 · 감쇠 9)
+ *  - 값이 바뀌지 않아도(예: 회색을 눌러도) 누르면 똑같이 튀어요.
+ *  - 표시가 바뀔 때(예: 내가 답해서 회색 → 진한 파랑)도 "놓았을 때" 움직임이 나와요.
  */
 import { useEffect, useRef } from 'react';
 import { adaptive } from '@toss/tds-colors';
@@ -30,7 +32,14 @@ const LABEL: Record<TaskCheckState, string> = {
   mine: '내가 답했어요',
 };
 
-/** 스프링을 직접 계산해서 값을 한 프레임씩 흘려보내요 */
+/** 스프링 값 (TDS 체크 아이콘과 같은 이름). 마지막 bounce 의 감쇠만 더 여러 번 튕기도록 낮췄어요. */
+const SPRING = {
+  rapid: { k: 1000, c: 55 },
+  quick: { k: 800, c: 55 },
+  bounce: { k: 300, c: 9 },
+};
+
+/** 스프링을 직접 계산해서 값을 한 프레임씩 흘려보내요. 돌려주는 함수를 부르면 멈춰요. */
 function spring(
   from: number,
   to: number,
@@ -38,8 +47,8 @@ function spring(
   stiffness: number,
   damping: number,
   onFrame: (x: number, v: number) => void,
-  onDone: (x: number, v: number) => void,
-  maxMs = 900
+  onDone: () => void,
+  maxMs: number
 ) {
   let x = from;
   let v = v0;
@@ -47,7 +56,7 @@ function spring(
   const start = last;
   let raf = 0;
   const tick = (now: number) => {
-    let dt = Math.min(0.034, (now - last) / 1000);
+    const dt = Math.min(0.034, (now - last) / 1000);
     last = now;
     const steps = Math.max(1, Math.ceil(dt / (1 / 240)));
     const h = dt / steps;
@@ -58,7 +67,7 @@ function spring(
     onFrame(x, v);
     if ((Math.abs(x - to) < 0.0015 && Math.abs(v) < 0.02) || now - start > maxMs) {
       onFrame(to, 0);
-      onDone(to, 0);
+      onDone();
       return;
     }
     raf = requestAnimationFrame(tick);
@@ -70,30 +79,57 @@ function spring(
 export function TaskCheck({ state, size = 20 }: { state: TaskCheckState; size?: number }) {
   const pathRef = useRef<SVGPathElement>(null);
   const prev = useRef<TaskCheckState>(state);
-  const cancel = useRef<() => void>();
+  const cur = useRef({ x: 1, v: 0 });
+  const token = useRef(0);
+  const stop = useRef<() => void>();
 
+  /** 현재 크기에서 목표 크기까지 스프링으로 가요. 새 움직임이 시작되면 이전 움직임은 멈춰요. */
+  const step = (id: number, to: number, k: number, c: number, maxMs: number) =>
+    new Promise<void>((resolve) => {
+      if (id !== token.current) return;
+      stop.current = spring(
+        cur.current.x,
+        to,
+        cur.current.v,
+        k,
+        c,
+        (x, v) => {
+          cur.current = { x, v };
+          if (pathRef.current) pathRef.current.style.transform = `scale(${x})`;
+        },
+        resolve,
+        maxMs
+      );
+    });
+
+  const press = () => {
+    const id = ++token.current;
+    stop.current?.();
+    void step(id, 0.8, SPRING.rapid.k, SPRING.rapid.c, 200);
+  };
+
+  /** 놓았을 때: 살짝 커졌다가 → 여러 번 튕기며 원래 크기로 */
+  const release = async () => {
+    const id = ++token.current;
+    stop.current?.();
+    await step(id, 1.1, SPRING.quick.k, SPRING.quick.c, 260);
+    await step(id, 1, SPRING.bounce.k, SPRING.bounce.c, 1500);
+    if (id === token.current && pathRef.current) {
+      pathRef.current.style.transform = 'none';
+      cur.current = { x: 1, v: 0 };
+    }
+  };
+
+  // 표시가 바뀌면(내가 답했을 때 등) 놓았을 때와 같은 움직임
   useEffect(() => {
     if (prev.current === state) return;
     prev.current = state;
-    const el = pathRef.current;
-    if (!el) return;
-    cancel.current?.();
-    const set = (s: number) => {
-      el.style.transform = `scale(${s})`;
-    };
-    // 1) 살짝 커지고(quick) → 2) 원래 크기로 튀며 돌아와요(bounce)
-    let stop1 = spring(1, 1.1, 0, 800, 55, (x) => set(x), (x) => {
-      stop2 = spring(x, 1, 0, 300, 15, (y) => set(y), () => {
-        el.style.transform = 'none';
-      });
-    }, 220);
-    let stop2 = () => {};
-    cancel.current = () => {
-      stop1();
-      stop2();
-    };
-    return () => cancel.current?.();
+    void release();
+    return () => stop.current?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
+
+  useEffect(() => () => stop.current?.(), []);
 
   const look = LOOK[state];
   return (
@@ -101,7 +137,11 @@ export function TaskCheck({ state, size = 20 }: { state: TaskCheckState; size?: 
       viewBox="0 0 24 24"
       role="img"
       aria-label={LABEL[state]}
-      style={{ width: size, height: size, flex: '0 0 auto', display: 'block' }}
+      onPointerDown={press}
+      onPointerUp={release}
+      onPointerLeave={() => token.current > 0 && cur.current.x < 0.99 && void release()}
+      onPointerCancel={release}
+      style={{ width: size, height: size, flex: '0 0 auto', display: 'block', touchAction: 'manipulation', userSelect: 'none' }}
     >
       <title>{LABEL[state]}</title>
       <path

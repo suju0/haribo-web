@@ -618,7 +618,7 @@ function ReapplyNotice() {
   return (
     <div
       role="note"
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 10, background: '#FFF1E0', color: '#B54708' }}
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 10, background: '#FFF1E0', color: '#E8590C' }}
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
         <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
