@@ -155,3 +155,21 @@ body,
   white-space: nowrap;
   border: 0;
 }
+
+/* 설정 방법 3단계: 칸 사이 간격만 줄다가, 칸이 겹칠 정도로 좁아지면 세로로 쌓여요. (240 + 240 + 220 + 최소 간격 32 + 양쪽 30 = 792) */
+.notify-guide {
+  container-type: inline-size;
+}
+.notify-guide-cols {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 0 30px;
+}
+@container (max-width: 791px) {
+  .notify-guide-cols {
+    flex-direction: column;
+    gap: 0;
+  }
+}

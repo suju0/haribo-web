@@ -20,6 +20,13 @@ const SHOW_ALLOW_BLOCK_BUTTONS = false;
 /** 펼치는 데 걸리는 시간(ms). global.css 의 .notify-panel transition 과 같아야 해요. */
 const NOTIFY_OPEN_MS = 420;
 
+/** 디자인 파일(870 × 244) 안에서 3단계가 놓인 가로 위치(x)와 폭(w) */
+const GUIDE_COLS = [
+  { x: 20, w: 240 },
+  { x: 324, w: 240 },
+  { x: 630, w: 220 },
+];
+
 /** 그림 안의 글자는 벡터라서 읽히지 않아요. 같은 내용을 스크린 리더용으로 따로 둬요. */
 const STEPS = [
   { title: '사이트 정보 아이콘을 클릭', lines: ['브라우저에서 주소창 왼쪽의', '자물쇠 또는 사이트 정보 아이콘을 클릭합니다'] },
@@ -134,14 +141,24 @@ export function NotificationAccordion({ onClose }: { onClose: () => void }) {
 
       {/* 펼침 영역: 높이가 0 → 내용 높이로 부드럽게 늘어나요 */}
       <div ref={panelRef} id={panelId} className="notify-panel" data-open={open} aria-hidden={!open}>
-        <div style={{ padding: '0 5px' }}>
-          {/* 디자인(870 × 244)이 안내 창 폭 안에서 가운데로 놓이고, 좁아지면 같은 비율로 줄어요 */}
-          <img
-            src={guideSvg}
-            alt=""
-            draggable={false}
-            style={{ display: 'block', width: '100%', maxWidth: 870, aspectRatio: '870 / 244', margin: '0 auto' }}
-          />
+        <div className="notify-guide">
+          {/*
+            디자인 파일(870 × 244) 한 장에서 3단계를 칸별로 잘라서 보여줘요(벡터 그대로).
+            첫 칸은 위 알림 아이콘과 같은 왼쪽 30px에서 시작하고, 마지막 칸은 오른쪽 30px에서 끝나요.
+            창이 좁아지면 칸 사이 간격만 줄고, 칸이 겹칠 정도로 좁아지면(global.css) 세로로 쌓여요.
+          */}
+          <div className="notify-guide-cols">
+            {GUIDE_COLS.map((c) => (
+              <div key={c.x} style={{ position: 'relative', flexShrink: 0, width: c.w, height: 244, overflow: 'hidden' }}>
+                <img
+                  src={guideSvg}
+                  alt=""
+                  draggable={false}
+                  style={{ position: 'absolute', top: 0, left: -c.x, width: 870, height: 244, maxWidth: 'none' }}
+                />
+              </div>
+            ))}
+          </div>
           <ol className="sr-only">
             {STEPS.map((st) => (
               <li key={st.title}>{`${st.title}. ${st.lines.join(' ')}`}</li>

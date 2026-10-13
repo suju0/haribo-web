@@ -432,6 +432,7 @@ export function App() {
 
         {/* 흰색 둥근 패널 */}
         <div
+          className="app-scroll"
           style={{
             flex: 1,
             minHeight: 0,

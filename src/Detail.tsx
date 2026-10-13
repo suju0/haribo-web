@@ -376,8 +376,23 @@ function PeerBar({
   onSelect: (id: string) => void;
   onBack: () => void;
 }) {
+  // 같은 이슈 번호의 버전들은 칩 하나로 묶고, 버전은 아래 탭으로 오가요.
+  const groups: DecisionChange[][] = [];
+  const index = new Map<number, number>();
+  peers.forEach((p) => {
+    const i = index.get(p.issueNo);
+    if (i === undefined) {
+      index.set(p.issueNo, groups.length);
+      groups.push([p]);
+    } else groups[i].push(p);
+  });
+  groups.forEach((g) => g.sort((a, b) => (b.version?.to ?? 0) - (a.version?.to ?? 0)));
+  const current = groups.find((g) => g.some((p) => p.id === currentId));
+  const versions = current && current.length > 1 ? current : null;
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, minWidth: 0 }}>
+    <>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: versions ? 12 : 20, minWidth: 0 }}>
       <div style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
         <TextButton size="xsmall" color={adaptive.blue500} onClick={onBack}>
           ‹ 목록으로
@@ -398,19 +413,20 @@ function PeerBar({
           padding: '6px 8px 4px 0',
         }}
       >
-        {peers.map((p) => {
-          const selected = p.id === currentId;
-          // 같은 이슈 번호가 여러 버전이면 "이슈 #4 · v3"처럼 버전을 붙여서 구분해요.
-          const multi = peers.filter((x) => x.issueNo === p.issueNo).length > 1 && !!p.version;
-          const chipLabel = `이슈 #${p.issueNo}${multi ? ` · v${p.version!.to}` : ''}`;
+        {groups.map((g) => {
+          const head = g[0];
+          const selected = g.some((p) => p.id === currentId);
+          const pending = g.some((p) => isPending(p));
+          // 칩을 누르면 지금 확인할 버전(없으면 최신 버전)을 열어요.
+          const target = g.find((p) => isPending(p)) ?? head;
           return (
-            <Tooltip key={p.id} size="small" placement="bottom" openOnHover message={`${p.title} · ${reviewStatus(p)}`}>
+            <Tooltip key={head.issueNo} size="small" placement="bottom" openOnHover message={`${head.title} · ${reviewStatus(head)}`}>
               <button
                 type="button"
                 role="tab"
                 aria-selected={selected}
-                aria-label={`${chipLabel} ${p.title} (${reviewStatus(p)})`}
-                onClick={() => !selected && onSelect(p.id)}
+                aria-label={`이슈 #${head.issueNo} ${head.title} (${reviewStatus(head)})`}
+                onClick={() => !selected && onSelect(target.id)}
                 style={{
                   position: 'relative',
                   flexShrink: 0,
@@ -422,8 +438,8 @@ function PeerBar({
                   lineHeight: 0,
                 }}
               >
-                <IssueFilterChip active={selected}>{chipLabel}</IssueFilterChip>
-                {isPending(p) && (
+                <IssueFilterChip active={selected}>{`이슈 #${head.issueNo}`}</IssueFilterChip>
+                {pending && (
                   <span
                     aria-hidden
                     style={{
@@ -446,6 +462,42 @@ function PeerBar({
         })}
       </div>
     </div>
+    {/* 한 이슈에 버전이 여러 개면, 그 안에서 버전별로 페이지를 나눠서 볼 수 있어요 */}
+    {versions && (
+      <div role="tablist" aria-label="이 이슈의 버전" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+        <Paragraph.Text typography="st12" color={adaptive.grey500}>
+          버전
+        </Paragraph.Text>
+        {versions.map((p) => {
+          const active = p.id === currentId;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => !active && onSelect(p.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                border: 0,
+                cursor: 'pointer',
+                padding: '6px 12px',
+                borderRadius: 999,
+                background: active ? adaptive.blue50 : adaptive.grey100,
+                lineHeight: 1,
+              }}
+            >
+              <Paragraph.Text typography="st12" fontWeight={active ? 'bold' : 'medium'} color={active ? adaptive.blue700 : adaptive.grey600}>
+                {`v${p.version?.to ?? ''} · ${reviewStatus(p)}`}
+              </Paragraph.Text>
+            </button>
+          );
+        })}
+      </div>
+    )}
+    </>
   );
 }
 

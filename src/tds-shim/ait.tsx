@@ -14,8 +14,9 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 button { font-family: inherit; }
-/* 스크롤바가 생겼다 사라져도 내용 폭이 변하지 않게 자리를 미리 잡아둬요. (안내 창이 펼쳐질 때 폭이 달라지던 문제) */
-* { scrollbar-gutter: stable; }
+/* 스크롤바가 생겼다 사라져도 내용 폭이 변하지 않게 자리를 미리 잡아둬요. (안내 창이 펼쳐질 때 폭이 달라지던 문제)
+   주의: 모든 요소(*)에 걸면 overflow가 hidden인 svg 아이콘(×)까지 폭이 0이 돼서, 스크롤되는 패널에만 걸어요. */
+.app-scroll { scrollbar-gutter: stable; }
 .tds-shim-touch {
   position: absolute;
   inset: 0;

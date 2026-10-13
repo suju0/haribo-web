@@ -32,7 +32,7 @@ import { BlueFillChipWeight, Chip, ChipTone, FilterTabs, IconBellOff, IconClose,
  */
 const SHOW_SEARCH = false;
 
-type Filter = 'all' | 'mine';
+type Filter = 'all' | 'mine' | 'issue';
 
 /**
  * CLI 탭 여부. CLI 탭은 "화면에 들어가는 데이터.md"에서 정한 표현(확인할 변경 상태 대기/답함/대체됨,
@@ -480,6 +480,79 @@ function NotificationBanner({ on, onToggle, onClose }: { on: boolean; onToggle: 
   );
 }
 
+/**
+ * 이슈 별로 보기 (구성 B): 같은 이슈 번호의 버전들을 이슈 머리글 아래에 묶어서 보여줘요.
+ * 위에서부터 지금 확인할 일이 있는 이슈 → 나머지 순서이고, 한 이슈 안에서는 최신 버전이 맨 위예요.
+ */
+function IssueGroups({
+  items,
+  doneTasks,
+  onOpen,
+  onOpenIssue,
+}: {
+  items: DecisionChange[];
+  doneTasks: Set<string>;
+  onOpen: (id: string) => void;
+  onOpenIssue: (issueNo: number, version?: number) => void;
+}) {
+  const groups: DecisionChange[][] = [];
+  const index = new Map<number, number>();
+  items.forEach((c) => {
+    const i = index.get(c.issueNo);
+    if (i === undefined) {
+      index.set(c.issueNo, groups.length);
+      groups.push([c]);
+    } else groups[i].push(c);
+  });
+  groups.forEach((g) => g.sort((a, b) => (b.version?.to ?? 0) - (a.version?.to ?? 0)));
+  groups.sort((a, b) => Number(b.some(isPending)) - Number(a.some(isPending)) || b[0].timestamp - a[0].timestamp);
+
+  return (
+    <>
+      {groups.map((g) => {
+        const pending = g.some(isPending);
+        const head = g[0];
+        return (
+          <div
+            key={head.issueNo}
+            style={{
+              marginTop: 18,
+              border: `1px solid ${pending ? adaptive.blue100 : adaptive.grey200}`,
+              borderRadius: 14,
+              background: adaptive.background,
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{ padding: '22px 20px 16px', display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
+              <div style={{ flexShrink: 0 }}>
+                <Paragraph.Text typography="t6" fontWeight="bold" color={adaptive.grey900}>
+                  {`이슈 #${head.issueNo}`}
+                </Paragraph.Text>
+              </div>
+              {head.issueTitle && (
+                <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <Paragraph.Text typography="t7" color={adaptive.grey600}>
+                    {head.issueTitle}
+                  </Paragraph.Text>
+                </div>
+              )}
+            </div>
+            {g.map((c) =>
+              isAutoClosed(c) ? (
+                <ClosedRow key={c.id} change={c} first={false} onOpen={onOpen} onOpenIssue={onOpenIssue} />
+              ) : isPending(c) ? (
+                <PendingRow key={c.id} change={c} onOpen={onOpen} />
+              ) : (
+                <DoneRow key={c.id} change={c} first={false} doneTasks={doneTasks} onOpen={onOpen} />
+              )
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
 /* ───────── 나에게 온 변경 화면 ───────── */
 export function Inbox({
   changes,
@@ -507,7 +580,7 @@ export function Inbox({
 
   const q = query.trim().toLowerCase().replace(/^#/, '');
   const visible = sorted.filter((c) => {
-    const inFilter = filter === 'all' || c.affectsMe;
+    const inFilter = filter === 'all' || filter === 'issue' || c.affectsMe;
     const inQuery = !q || c.title.toLowerCase().includes(q) || String(c.issueNo) === q;
     return inFilter && inQuery;
   });
@@ -541,10 +614,18 @@ export function Inbox({
           label="변경 보기 범위"
           value={filter}
           onChange={setFilter}
-          options={[
-            { value: 'all', label: '전체' },
-            { value: 'mine', label: '내 작업만 보기' },
-          ]}
+          options={
+            // 대체 버전(CLI 탭)은 "내 작업만 보기" 자리에 "이슈 별로 보기"를 둬요. 같은 이슈의 버전들을 묶어서 보여줘요.
+            STANDALONE && cli
+              ? [
+                  { value: 'all', label: '전체' },
+                  { value: 'issue', label: '이슈 별로 보기' },
+                ]
+              : [
+                  { value: 'all', label: '전체' },
+                  { value: 'mine', label: '내 작업만 보기' },
+                ]
+          }
         />
       </div>
 
@@ -579,6 +660,8 @@ export function Inbox({
             description={q ? '제목이나 이슈 번호(예: #12)를 다시 확인해주세요.' : '새로운 변경이 감지되면 알려드릴게요.'}
           />
         </div>
+      ) : STANDALONE && cli && filter === 'issue' ? (
+        <IssueGroups items={visible} doneTasks={doneTasks} onOpen={onOpen} onOpenIssue={onOpenIssue} />
       ) : (
         <>
           {/* 답할 변경 */}
