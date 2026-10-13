@@ -168,11 +168,19 @@ const STANDALONE_TONES: Partial<Record<ChipTone, { bg: string; color: string }>>
 export const BlueFillChipWeight = createContext<number | undefined>(undefined);
 
 /** TDS Badge를 디자인 색으로 쓰는 칩 (높이 23, 모서리 6) */
-export const Chip = forwardRef<HTMLSpanElement, { tone: ChipTone; children: ReactNode; icon?: ReactNode }>(function Chip(
-  { tone, children, icon, ...rest },
-  ref
-) {
-  const t = (STANDALONE && STANDALONE_TONES[tone]) || TONES[tone];
+export const Chip = forwardRef<
+  HTMLSpanElement,
+  {
+    tone: ChipTone;
+    children: ReactNode;
+    icon?: ReactNode;
+    /** 제목·글자 오른쪽에 붙는 작은 칩. 대체 버전에서도 토스 칩 모양으로 바꾸지 않고 원래 크기·색(높이 23, 모서리 6)을 써요. */
+    inline?: boolean;
+  }
+>(function Chip({ tone, children, icon, inline, ...rest }, ref) {
+  // [대기] [답함]처럼 단독으로 놓이는 칩만 토스 칩 모양을 따라요.
+  const modern = STANDALONE && !inline;
+  const t = (modern && STANDALONE_TONES[tone]) || TONES[tone];
   const blueFillWeight = useContext(BlueFillChipWeight);
   return (
     <Badge
@@ -186,9 +194,9 @@ export const Chip = forwardRef<HTMLSpanElement, { tone: ChipTone; children: Reac
           // Badge는 색을 인라인 color / backgroundColor로 직접 지정해서, 같은 속성으로 덮어써요.
           color: t.color,
           backgroundColor: t.bg,
-          '--badge-border-radius': STANDALONE ? '9px' : '6px',
-          '--badge-padding': STANDALONE ? '6px 13px' : '2.5px 8px',
-          ...(STANDALONE ? { '--badge-font-size': '13px', lineHeight: '20px' } : {}),
+          '--badge-border-radius': modern ? '9px' : '6px',
+          '--badge-padding': modern ? '6px 13px' : '2.5px 8px',
+          ...(modern ? { '--badge-font-size': '13px', lineHeight: '20px' } : {}),
           display: 'inline-flex',
           alignItems: 'center',
           gap: 4,

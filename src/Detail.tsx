@@ -164,7 +164,7 @@ function DecisionIssueCard({ change }: { change: DecisionChange }) {
           '이슈',
           '결정이 필요한 과제',
           change.issueTitle,
-          change.issueStatus === '완료' ? <Chip tone="green">이슈 완료</Chip> : undefined
+          change.issueStatus === '완료' ? <Chip inline tone="green">이슈 완료</Chip> : undefined
         )}
       {row(<IconDecision />, '결정 사항', '확정된 결과', change.title, undefined, true)}
     </div>
@@ -696,22 +696,22 @@ export function Detail({
             <>
               {/* 대체 버전: 답해야 하는 변경은 "대기" 칩 대신 제목 아래의 주황 안내로 알려요 */}
               {!(STANDALONE && reviewStatus(change) === '대기') && (
-                <Chip tone={reviewStatus(change) === '대기' ? 'orange' : reviewStatus(change) === '답함' ? 'green' : 'gray'}>
+                <Chip inline tone={reviewStatus(change) === '대기' ? 'orange' : reviewStatus(change) === '답함' ? 'green' : 'gray'}>
                   {reviewStatus(change)}
                 </Chip>
               )}
-              {fresh && <Chip tone="blueFill">새 결정 사항</Chip>}
-              {change.revertedTo && <Chip tone="purple">되돌림</Chip>}
-              {change.isNewVersion && change.version && <Chip tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
+              {fresh && <Chip inline tone="blueFill">새 결정 사항</Chip>}
+              {change.revertedTo && <Chip inline tone="purple">되돌림</Chip>}
+              {change.isNewVersion && change.version && <Chip inline tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
               {change.source === 'code' ? (
-                <Chip tone="gray">코드에서 바꿈</Chip>
+                <Chip inline tone="gray">코드에서 바꿈</Chip>
               ) : (
-                <Chip tone="ai" icon={<IconSparkle />}>
+                <Chip inline tone="ai" icon={<IconSparkle />}>
                   AI 대화에서 바꿈
                 </Chip>
               )}
-              {change.foundByAi && <Chip tone="gray">PR에서 찾음</Chip>}
-              {change.issueStatus === '완료' && <Chip tone="green">이슈 완료</Chip>}
+              {change.foundByAi && <Chip inline tone="gray">PR에서 찾음</Chip>}
+              {change.issueStatus === '완료' && <Chip inline tone="green">이슈 완료</Chip>}
             </>
           ) : (
             <>
@@ -821,7 +821,7 @@ export function Detail({
         ) : (
           <>
             <ValueBox label="변경 전" value={change.before ?? '이전 값이 없어요 · 새로 생긴 결정이에요'} />
-            <ValueBox label="변경 후" value={change.after} after tag={change.revertedTo ? <Chip tone="purple">되돌림</Chip> : undefined} />
+            <ValueBox label="변경 후" value={change.after} after tag={change.revertedTo ? <Chip inline tone="purple">되돌림</Chip> : undefined} />
           </>
         )}
       </div>

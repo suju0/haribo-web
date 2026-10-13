@@ -56,13 +56,13 @@ function CliSourceChips({ change }: { change: DecisionChange }) {
   return (
     <>
       {change.source === 'code' ? (
-        <Chip tone="gray">코드에서 바꿈</Chip>
+        <Chip inline tone="gray">코드에서 바꿈</Chip>
       ) : (
-        <Chip tone="ai" icon={<IconSparkle />}>
+        <Chip inline tone="ai" icon={<IconSparkle />}>
           AI 대화에서 바꿈
         </Chip>
       )}
-      {change.foundByAi && <Chip tone="gray">PR에서 찾음</Chip>}
+      {change.foundByAi && <Chip inline tone="gray">PR에서 찾음</Chip>}
     </>
   );
 }
@@ -71,9 +71,9 @@ function CliSourceChips({ change }: { change: DecisionChange }) {
 function CliTags({ change }: { change: DecisionChange }) {
   return (
     <>
-      {isNewDecision(change) && <Chip tone="blueFill">새 결정 사항</Chip>}
-      {change.isNewVersion && change.version && <Chip tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
-      {!STANDALONE && change.issueStatus === '완료' && <Chip tone="green">이슈 완료</Chip>}
+      {isNewDecision(change) && <Chip inline tone="blueFill">새 결정 사항</Chip>}
+      {change.isNewVersion && change.version && <Chip inline tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
+      {!STANDALONE && change.issueStatus === '완료' && <Chip inline tone="green">이슈 완료</Chip>}
     </>
   );
 }
@@ -120,7 +120,7 @@ function AiChip({ change }: { change: DecisionChange }) {
   // CLI의 AI 대화에서 정해진 결정
   if (isAiChat(change)) {
     return (
-      <Chip tone="ai" icon={<IconSparkle />}>
+      <Chip inline tone="ai" icon={<IconSparkle />}>
         AI 대화에서 바꿈
       </Chip>
     );
@@ -132,7 +132,7 @@ function AiChip({ change }: { change: DecisionChange }) {
       openOnHover
       message={`PR #${change.pr?.number}에서 AI가 찾아낸 결정이에요. 실제 결정이 맞는지 확인해주세요.`}
     >
-      <Chip tone="ai" icon={<IconSparkle />}>
+      <Chip inline tone="ai" icon={<IconSparkle />}>
         AI가 PR에서 찾음
       </Chip>
     </Tooltip>
@@ -183,7 +183,7 @@ function ChangeLine({ change, muted }: { change: DecisionChange; muted?: boolean
   // 되돌림: 변경 내용 바로 앞에 "되돌림"을 붙이고, 내가 이전에 답한 이력이 있으면 뒤에 한 줄로 알려줘요.
   return (
     <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px' }}>
-      <Chip tone="purple">되돌림</Chip>
+      <Chip inline tone="purple">되돌림</Chip>
       {line}
       {change.previousAnswer && (
         <Paragraph.Text typography="t7" color={adaptive.grey500}>
