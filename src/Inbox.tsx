@@ -48,12 +48,8 @@ function ReviewStatusChip({ change }: { change: DecisionChange }) {
   const status = reviewStatus(change);
   // 대기 = 주황, 답함 = 파란 채움, 대체됨 = 회색. 목록 왼쪽 같은 칸에서 한눈에 구분돼요.
   const tone: ChipTone = status === '대기' ? 'orange' : status === '답함' ? (STANDALONE ? 'blueFill' : 'green') : 'gray';
-  // 대체 버전: 3글자 "대체됨" 폭에 맞춰 세 칩을 같은 크기로 보여줘요.
-  return (
-    <Chip tone={tone} minWidth={STANDALONE ? 62 : undefined}>
-      {status}
-    </Chip>
-  );
+  // 대체 버전: 좌우 여백은 13px로 고정이고, 칩 폭은 글자 수에 맞춰져요(대기·답함은 좁고 대체됨은 넓어요).
+  return <Chip tone={tone}>{status}</Chip>;
 }
 
 /** 출처("AI 대화에서 바꿈" / "코드에서 바꿈")와, AI가 찾았을 때만 "PR에서 찾음" */
@@ -402,7 +398,7 @@ function DoneRow({
           superseded ? undefined : (
             <div style={{ width: 80, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
               <Paragraph.Text typography="t7" fontWeight="medium" color={adaptive.blue500}>
-                {`${handled}/${total} 처리`}
+                {STANDALONE ? `작업 ${handled}/${total} 답함` : `${handled}/${total} 처리`}
               </Paragraph.Text>
               <div style={{ width: 80 }}>
                 <ProgressBar progress={total === 0 ? 0 : handled / total} size="light" />

@@ -589,7 +589,8 @@ const COLS = '103px minmax(150px, 312px) minmax(80px, 172px) minmax(150px, 1fr)'
  * CLI 탭 작업 표: 이름 칸이 남는 폭을 모두 채우고(1fr), 담당 · 처리 상태는 오른쪽으로 밀려나요.
  * 처리 상태 칸은 칩이 2개까지 한 줄에 놓이는 폭(172px)으로 고정하고, 3개째부터는 줄바꿈으로 아래에 내려가요.
  */
-const COLS_CLI = '103px minmax(150px, 1fr) 100px 172px';
+// 대체 버전은 담당 칸을 128px로 넓혀서(로컬은 100px) 담당 → 처리 상태 간격을 작업 → 이름 간격 정도로 맞춰요.
+const COLS_CLI = STANDALONE ? '103px minmax(150px, 1fr) 128px 172px' : '103px minmax(150px, 1fr) 100px 172px';
 
 export function Detail({
   change,
