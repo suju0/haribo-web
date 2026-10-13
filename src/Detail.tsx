@@ -14,6 +14,7 @@ import {
 } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
 import {
+  AffectedTask,
   Answer,
   DecisionChange,
   STATUS_DESC,
@@ -30,6 +31,7 @@ import {
   taskOwner,
   taskTitle,
 } from './data';
+import { TaskCheck, type TaskCheckState } from './TaskCheck';
 import { ANSWER_NEEDED, AUTO_CLOSED_NOTICE, REAPPLY_HINT, STANDALONE } from './copy';
 import { BlueFillChipWeight, Chip, IconDecision, IconEdit, IconIssue, IconSparkle, IssueFilterChip } from './design';
 
@@ -592,6 +594,13 @@ const COLS = '103px minmax(150px, 312px) minmax(80px, 172px) minmax(150px, 1fr)'
 // 대체 버전은 담당 칸을 128px로 넓혀서(로컬은 100px) 담당 → 처리 상태 간격을 작업 → 이름 간격 정도로 맞춰요.
 const COLS_CLI = STANDALONE ? '103px minmax(150px, 1fr) 128px 172px' : '103px minmax(150px, 1fr) 100px 172px';
 
+/** 작업 표 체크 아이콘의 상태: 아직 대기 / 다른 담당자가 답함 / 내가 답함 */
+function taskCheckState(t: AffectedTask, viewerRole?: string): TaskCheckState {
+  if (t.state === undefined || t.state === 'pending') return 'pending';
+  const mine = !!viewerRole && (t.owner === viewerRole || t.name.startsWith(`${viewerRole} /`));
+  return mine ? 'mine' : 'other';
+}
+
 export function Detail({
   change,
   total,
@@ -608,7 +617,10 @@ export function Detail({
   peers,
   onPeerSelect,
   autoClosedNotice,
+  viewerRole,
 }: {
+  /** 대체 버전 CLI 탭: 지금 보는 사람의 역할(예: QA). 작업 표에서 "내가 답한 작업"을 가려내는 데 써요 */
+  viewerRole?: string;
   /** 대체 버전: 상세를 보는 중에 원래 값으로 돌아와 자동으로 닫혔을 때 한 줄 안내를 띄워요 */
   autoClosedNotice?: boolean;
   /** CLI 탭: 이 담당자에게 온 변경 목록 (상세 위쪽 탭으로 보여줘요) */
@@ -899,14 +911,18 @@ export function Detail({
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {!closed && (
-                  <Checkbox.Line
-                    size={20}
-                    checked={checked}
-                    disabled={!acked}
-                    onCheckedChange={(v) => onTaskToggle(t.name, v)}
-                  />
-                )}
+                {!closed &&
+                  (STANDALONE && cli ? (
+                    // 대체 버전: 누를 수 없는 "답함" 표시. 대기 = 연한 회색 · 담당자가 답함 = 연한 파랑 · 내가 답함 = 진한 파랑
+                    <TaskCheck state={taskCheckState(t, viewerRole)} />
+                  ) : (
+                    <Checkbox.Line
+                      size={20}
+                      checked={checked}
+                      disabled={!acked}
+                      onCheckedChange={(v) => onTaskToggle(t.name, v)}
+                    />
+                  ))}
                 <Paragraph.Text typography="t7" fontWeight="bold" color={adaptive.grey900}>
                   {taskNo(change, i)}
                 </Paragraph.Text>
@@ -958,7 +974,8 @@ export function Detail({
         })}
         </div>
       </div>
-      {!acked && !closed && (
+      {/* 대체 버전: 작업 표는 담당자들의 답 현황만 보여주는 표라서, 작업 처리를 체크하라는 안내는 없어요 */}
+      {!STANDALONE && !acked && !closed && (
         <div style={{ marginTop: 8 }}>
           <Paragraph.Text typography="st12" color={adaptive.grey500}>
             {cli ? '먼저 이 변경에 답하면 작업 처리를 체크할 수 있어요.' : '먼저 변경 내용을 확인했다고 답하면 작업 처리를 체크할 수 있어요.'}

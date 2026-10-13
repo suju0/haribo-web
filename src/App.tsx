@@ -367,6 +367,7 @@ export function App() {
         onAnswer={board.answerChange}
         peers={isCli ? sortChanges(changes).filter((c) => !c.hiddenClosed) : undefined}
         onPeerSelect={board.open}
+        viewerRole={isCli ? cliViewerInfo.role : undefined}
         // 확정안 2 미리보기(대체 버전 전용): 주소 뒤에 ?preview=auto-closed 를 붙이면 "원래대로 돌아와서…" 한 줄 안내를 볼 수 있어요.
         autoClosedNotice={STANDALONE && new URLSearchParams(window.location.search).get('preview') === 'auto-closed'}
       />
