@@ -700,7 +700,11 @@ export function Detail({
                   {reviewStatus(change)}
                 </Chip>
               )}
-              {fresh && <Chip inline tone="blueFill">새 결정 사항</Chip>}
+              {fresh && (
+                <Chip inline tone={STANDALONE ? 'blue' : 'blueFill'}>
+                  새 결정 사항
+                </Chip>
+              )}
               {change.revertedTo && <Chip inline tone="purple">되돌림</Chip>}
               {change.isNewVersion && change.version && <Chip inline tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
               {change.source === 'code' ? (

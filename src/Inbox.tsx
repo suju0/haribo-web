@@ -48,7 +48,12 @@ function ReviewStatusChip({ change }: { change: DecisionChange }) {
   const status = reviewStatus(change);
   // 대기 = 주황, 답함 = 파란 채움, 대체됨 = 회색. 목록 왼쪽 같은 칸에서 한눈에 구분돼요.
   const tone: ChipTone = status === '대기' ? 'orange' : status === '답함' ? (STANDALONE ? 'blueFill' : 'green') : 'gray';
-  return <Chip tone={tone}>{status}</Chip>;
+  // 대체 버전: 3글자 "대체됨" 폭에 맞춰 세 칩을 같은 크기로 보여줘요.
+  return (
+    <Chip tone={tone} minWidth={STANDALONE ? 62 : undefined}>
+      {status}
+    </Chip>
+  );
 }
 
 /** 출처("AI 대화에서 바꿈" / "코드에서 바꿈")와, AI가 찾았을 때만 "PR에서 찾음" */
@@ -71,8 +76,13 @@ function CliSourceChips({ change }: { change: DecisionChange }) {
 function CliTags({ change }: { change: DecisionChange }) {
   return (
     <>
-      {isNewDecision(change) && <Chip inline tone="blueFill">새 결정 사항</Chip>}
+      {isNewDecision(change) && (
+        <Chip inline tone={STANDALONE ? 'blue' : 'blueFill'}>
+          새 결정 사항
+        </Chip>
+      )}
       {change.isNewVersion && change.version && <Chip inline tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
+      {change.revertedTo && <Chip inline tone="purple">되돌림</Chip>}
       {!STANDALONE && change.issueStatus === '완료' && <Chip inline tone="green">이슈 완료</Chip>}
     </>
   );
@@ -180,10 +190,9 @@ function ChangeLine({ change, muted }: { change: DecisionChange; muted?: boolean
     </Paragraph.Text>
   );
   if (!change.revertedTo) return line;
-  // 되돌림: 변경 내용 바로 앞에 "되돌림"을 붙이고, 내가 이전에 답한 이력이 있으면 뒤에 한 줄로 알려줘요.
+  // 되돌림 칩은 제목 옆(CliTags)으로 옮겼어요. 여기서는 내가 이전에 답한 이력이 있으면 뒤에 한 줄로 알려줘요.
   return (
     <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px' }}>
-      <Chip inline tone="purple">되돌림</Chip>
       {line}
       {change.previousAnswer && (
         <Paragraph.Text typography="t7" color={adaptive.grey500}>
@@ -292,8 +301,11 @@ function PendingRow({ change, onOpen }: { change: DecisionChange; onOpen: (id: s
               <Paragraph.Text typography="st11" fontWeight="bold" color={adaptive.grey900}>
                 {change.title}
               </Paragraph.Text>
-              <VersionKind change={change} />
-              <AiChip change={change} />
+              {/* 제목 옆 칩들은 한 덩어리로 묶어서, 좁아져도 칩끼리는 같은 줄에 나란히 있어요 */}
+              <div style={{ display: STANDALONE ? 'flex' : 'contents', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
+                <VersionKind change={change} />
+                <AiChip change={change} />
+              </div>
             </div>
             <ChangeLine change={change} />
             {cli && <ReapplyHint change={change} />}
@@ -349,7 +361,7 @@ function DoneRow({
 
   const superseded = !!change.supersededBy;
   return (
-    <div style={{ ...rowLine(first), background: first ? adaptive.blue50 : undefined, opacity: superseded ? 0.55 : undefined }}>
+    <div style={{ ...rowLine(first), background: first && !superseded ? adaptive.blue50 : undefined }}>
       <ListRow
         border="none"
         withTouchEffect
@@ -358,13 +370,17 @@ function DoneRow({
         onClick={() => onOpen(change.id)}
         left={cli && STANDALONE ? <KindChip change={change} /> : undefined}
         contents={
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+          // 대체됨은 내용만 흐리게 해요(왼쪽 칩은 그대로 또렷하게)
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, opacity: superseded ? 0.55 : undefined }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <Paragraph.Text typography="st11" fontWeight="bold" color={adaptive.grey900}>
                 {change.title}
               </Paragraph.Text>
-              <VersionKind change={change} />
-              <AiChip change={change} />
+              {/* 제목 옆 칩들은 한 덩어리로 묶어서, 좁아져도 칩끼리는 같은 줄에 나란히 있어요 */}
+              <div style={{ display: STANDALONE ? 'flex' : 'contents', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
+                <VersionKind change={change} />
+                <AiChip change={change} />
+              </div>
               {cli && STANDALONE ? null : cli ? (
                 <Chip tone={superseded ? 'gray' : 'green'}>{superseded ? '대체됨' : '답함'}</Chip>
               ) : (
@@ -435,8 +451,11 @@ function ClosedRow({
               <Paragraph.Text typography="st11" fontWeight="bold" color={adaptive.grey500}>
                 {change.title}
               </Paragraph.Text>
-              <VersionKind change={change} />
-              <AiChip change={change} />
+              {/* 제목 옆 칩들은 한 덩어리로 묶어서, 좁아져도 칩끼리는 같은 줄에 나란히 있어요 */}
+              <div style={{ display: STANDALONE ? 'flex' : 'contents', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
+                <VersionKind change={change} />
+                <AiChip change={change} />
+              </div>
             </div>
             <ChangeLine change={change} muted />
             <Paragraph.Text typography="t7" color={adaptive.grey600}>

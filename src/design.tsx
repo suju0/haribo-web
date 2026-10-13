@@ -176,8 +176,10 @@ export const Chip = forwardRef<
     icon?: ReactNode;
     /** 제목·글자 오른쪽에 붙는 작은 칩. 대체 버전에서도 토스 칩 모양으로 바꾸지 않고 원래 크기·색(높이 23, 모서리 6)을 써요. */
     inline?: boolean;
+    /** 같은 칸에 놓이는 칩끼리 폭을 맞출 때(예: 대기 · 답함 · 대체됨) 최소 폭 */
+    minWidth?: number;
   }
->(function Chip({ tone, children, icon, inline, ...rest }, ref) {
+>(function Chip({ tone, children, icon, inline, minWidth, ...rest }, ref) {
   // [대기] [답함]처럼 단독으로 놓이는 칩만 토스 칩 모양을 따라요.
   const modern = STANDALONE && !inline;
   const t = (modern && STANDALONE_TONES[tone]) || TONES[tone];
@@ -199,6 +201,7 @@ export const Chip = forwardRef<
           ...(modern ? { '--badge-font-size': '13px', lineHeight: '20px' } : {}),
           display: 'inline-flex',
           alignItems: 'center',
+          ...(minWidth ? { minWidth, justifyContent: 'center' } : {}),
           gap: 4,
           whiteSpace: 'nowrap',
         } as CSSProperties
