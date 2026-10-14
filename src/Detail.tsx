@@ -229,7 +229,7 @@ function DecisionIssueCard({
                 <>
                   {t.state === 'accepted' && t.awareness && <Chip tone="gray">{t.awareness === '몰랐음' ? '몰랐다' : '알았다'}</Chip>}
                   {/* 단계 칩은 하나만: [확인 완료] → "작업 반영했어요"를 누르면 파랑 채움 [작업 반영]으로 바뀌어요 */}
-                  <Chip tone={p === 'done' ? 'green' : p === 'applied' ? 'blueFill' : 'blue'}>{PROGRESS_LABEL[p]}</Chip>
+                  <Chip tone={p === 'done' ? 'green' : p === 'applied' ? 'ai' : 'blue'}>{PROGRESS_LABEL[p]}</Chip>
                 </>
               );
             // 숨겨 둔 모양: 작업 이름 옆에 붙는 작은 칩 하나(대기 / 확인 완료 / 작업 반영). SHOW_CHIP_POSITION_SWITCH 를 true 로 하면 다시 비교할 수 있어요.
@@ -1127,7 +1127,7 @@ export function Detail({
                     {(t.state === 'accepted' || t.state === 'rejected') &&
                       (() => {
                         const p = taskProgress(t);
-                        return <Chip tone={p === 'done' ? 'green' : p === 'applied' ? 'blueFill' : 'blue'}>{PROGRESS_LABEL[p]}</Chip>;
+                        return <Chip tone={p === 'done' ? 'green' : p === 'applied' ? 'ai' : 'blue'}>{PROGRESS_LABEL[p]}</Chip>;
                       })()}
                     {t.state === 'auto-closed' && <Chip tone="gray">자동 닫힘</Chip>}
                     {t.state === 'accepted' && t.awareness && <Chip tone="gray">{t.awareness === '몰랐음' ? '몰랐다' : '알았다'}</Chip>}
