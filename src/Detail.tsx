@@ -60,6 +60,9 @@ const CHIP_ROW_H = 24;
  *  숨기는 동안에는 내 작업만 "이슈 카드" 안에 보여요. */
 const SHOW_TASK_TABLE = false;
 
+/** "확정된 결과" 카드 옆 [되돌림] 칩. 제목 옆 칩과 겹쳐서 일단 숨겼어요. 다시 쓰려면 true. (대체 버전) */
+const SHOW_REVERTED_TAG_IN_RESULT = false;
+
 /** 이슈 카드 안 상태 칩 위치(오른쪽 / 제목 옆) 비교 스위치. 정하고 나면 false 로 바꿔서 숨겨요. (대체 버전 전용) */
 const SHOW_CHIP_POSITION_SWITCH = false;
 
@@ -167,7 +170,10 @@ function DecisionIssueCard({
   change,
   myTasks,
   viewerRole,
+  metaLine,
 }: {
+  /** 대체 버전: 카드 안에 들어가는 "작성자 · 시각 · 결정 사항 ID" 줄 */
+  metaLine?: string;
   change: DecisionChange;
   /** 대체 버전: 내 작업들. 있으면 "이슈" 줄 대신 작업 번호 · 작업 이름 · 처리 상태로 보여줘요 */
   myTasks?: { t: AffectedTask; i: number }[];
@@ -176,7 +182,7 @@ function DecisionIssueCard({
   const chipPos = useChipPosition();
   if (STANDALONE && !change.issueTitle) return null;
   // 아이콘 · "이슈 | 결정이 필요한 과제" (한 줄) · 내용 (다음 줄)
-  const row = (icon: React.ReactNode, label: string, desc: string, content: string, extra?: React.ReactNode, last?: boolean, right?: React.ReactNode) => (
+  const row = (icon: React.ReactNode, label: string, desc: string, content: string, extra?: React.ReactNode, last?: boolean, right?: React.ReactNode, between?: React.ReactNode, after?: React.ReactNode) => (
     <div
       style={{
         padding: '20px 0',
@@ -200,9 +206,11 @@ function DecisionIssueCard({
           </Paragraph.Text>
           {extra}
         </div>
+        {between}
         <Paragraph.Text typography="st10" fontWeight="medium" color={adaptive.grey900}>
           {content}
         </Paragraph.Text>
+        {after}
       </div>
       {/* 작업 표의 처리 상태처럼 오른쪽 끝에 칩을 모아요. 칩이 32px라서 줄 높이(24px)는 늘리지 않고 위아래로 걸쳐 놓아요. */}
       {right && <div style={{ flexShrink: 0, alignSelf: 'center', display: 'flex', flexWrap: 'nowrap', whiteSpace: 'nowrap', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>{right}</div>}
@@ -227,7 +235,7 @@ function DecisionIssueCard({
                 <Chip tone="orange">대기</Chip>
               ) : (
                 <>
-                  {t.state === 'accepted' && t.awareness && <Chip tone="gray">{t.awareness === '몰랐음' ? '몰랐다' : '알았다'}</Chip>}
+                  {t.state === 'accepted' && t.awareness && <Chip tone="blue">{t.awareness === '몰랐음' ? '몰랐다' : '알았다'}</Chip>}
                   {/* 단계 칩은 하나만: [확인 완료] → "작업 반영했어요"를 누르면 파랑 채움 [작업 반영]으로 바뀌어요 */}
                   <Chip tone={p === 'done' ? 'green' : p === 'applied' ? 'ai' : 'blue'}>{PROGRESS_LABEL[p]}</Chip>
                 </>
@@ -251,7 +259,26 @@ function DecisionIssueCard({
                   change.issueTitle!,
                   chipPos === 'title' ? small : undefined,
                   n === myTasks.length - 1,
-                  chipPos === 'right' ? status : undefined
+                  chipPos === 'right' ? status : undefined,
+                  // 이슈 제목 위: 작성자 · 시각 · 결정 사항 ID (글자 크기 · 색은 원래 줄 그대로)
+                  metaLine ? (
+                    <Paragraph.Text typography="t7" color={adaptive.grey600}>
+                      {metaLine}
+                    </Paragraph.Text>
+                  ) : undefined,
+                  // 이슈 제목 아래: 바뀐 이유 (원래 모양 그대로)
+                  metaLine ? (
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 4 }}>
+                      <div style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+                        <Paragraph.Text typography="t7" color={adaptive.grey500}>
+                          바뀐 이유
+                        </Paragraph.Text>
+                      </div>
+                      <Paragraph.Text typography="t7" color={adaptive.grey800}>
+                        {change.reason}
+                      </Paragraph.Text>
+                    </div>
+                  ) : undefined
                 )}
               </React.Fragment>
             );
@@ -815,6 +842,8 @@ export function Detail({
   const myTask = myTasks.find(({ t }) => t.state === 'accepted')?.t;
   const myProgress = myTask ? taskProgress(myTask) : undefined;
   // 대체 버전 CLI 탭: 현재 상태는 3단계. 답하면 "확인 완료", "작업 반영했어요"를 누르면 "작업 반영"
+  const inCard = STANDALONE && cli && !SHOW_TASK_TABLE && !!change.issueTitle && myTasks.length > 0;
+  const cardMeta = `${change.author} · ${formatWhen(change.timestamp)}${change.decisionKey ? ` · 결정 사항 ID ${change.decisionKey}` : ''}`;
   const simpleFlow = STANDALONE && cli;
   const stepFlow = simpleFlow ? STATUS_FLOW_SIMPLE : STATUS_FLOW;
   const currentIdx = simpleFlow
@@ -976,13 +1005,17 @@ export function Detail({
       )}
 
       {/* 누가 · 언제 · 근거 */}
+      {!inCard && (
       <div style={{ marginTop: 14 }}>
         <Paragraph.Text typography="t7" color={adaptive.grey600}>
           {cli
-            ? `${change.author} · ${formatWhen(change.timestamp)} · 근거: ${evidence}${change.decisionKey ? ` · 결정 사항 ID ${change.decisionKey}` : ''}`
+            ? STANDALONE
+            ? cardMeta // 대체 버전: "근거"는 없애요
+            : `${change.author} · ${formatWhen(change.timestamp)} · 근거: ${evidence}${change.decisionKey ? ` · 결정 사항 ID ${change.decisionKey}` : ''}`
             : `${who} · ${relTime(change.timestamp)} · ${change.changedAt} · 근거: ${evidence}`}
         </Paragraph.Text>
       </div>
+      )}
 
       {/* 안내 박스: 자동 닫힘 / AI 출처 */}
       {closed && (
@@ -1016,6 +1049,7 @@ export function Detail({
           change={change}
           viewerRole={viewerRole}
           myTasks={STANDALONE && !SHOW_TASK_TABLE ? myTasks : undefined}
+          metaLine={inCard ? cardMeta : undefined}
         />
       )}
 
@@ -1026,12 +1060,13 @@ export function Detail({
         ) : (
           <>
             <ValueBox label="변경 전" value={change.before ?? '이전 값이 없어요 · 새로 생긴 결정이에요'} />
-            <ValueBox label={STANDALONE ? '확정된 결과' : '변경 후'} value={change.after} after tag={change.revertedTo ? <Chip inline tone="purple">되돌림</Chip> : undefined} />
+            <ValueBox label={STANDALONE ? '확정된 결과' : '변경 후'} value={change.after} after tag={SHOW_REVERTED_TAG_IN_RESULT && change.revertedTo ? <Chip inline tone="purple">되돌림</Chip> : undefined} />
           </>
         )}
       </div>
 
-      {/* 바뀐 이유 */}
+      {/* 바뀐 이유 (대체 버전은 이슈 카드 안으로 들어가요) */}
+      {!inCard && (
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 20 }}>
         <div style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
           <Paragraph.Text typography="t7" color={adaptive.grey500}>
@@ -1042,6 +1077,7 @@ export function Detail({
           {change.reason}
         </Paragraph.Text>
       </div>
+      )}
 
       {STANDALONE && cli && SHOW_CHECK_MOTION_SWITCH && <CheckMotionSwitch />}
       {STANDALONE && cli && SHOW_CHIP_POSITION_SWITCH && !SHOW_TASK_TABLE && myTasks.length > 0 && <ChipPositionSwitch />}
