@@ -232,6 +232,7 @@ function DecisionIssueCard({
                   <Chip tone={p === 'done' ? 'green' : p === 'applied' ? 'blueFill' : 'blue'}>{PROGRESS_LABEL[p]}</Chip>
                 </>
               );
+            // 숨겨 둔 모양: 작업 이름 옆에 붙는 작은 칩 하나(대기 / 확인 완료 / 작업 반영). SHOW_CHIP_POSITION_SWITCH 를 true 로 하면 다시 비교할 수 있어요.
             const small =
               t.state === 'pending' ? (
                 <Chip inline tone="orange">대기</Chip>
