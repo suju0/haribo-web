@@ -60,6 +60,9 @@ const CHIP_ROW_H = 24;
  *  숨기는 동안에는 내 작업만 "이슈 카드" 안에 보여요. */
 const SHOW_TASK_TABLE = false;
 
+/** 제목 아래 "내 답이 필요한 변경이에요. 아래에서 답해주세요" 버튼. 잠시 숨겼어요. 다시 쓰려면 true. (대체 버전) */
+const SHOW_ANSWER_NEEDED_BUTTON = false;
+
 /** "확정된 결과" 카드 옆 [되돌림] 칩. 제목 옆 칩과 겹쳐서 일단 숨겼어요. 다시 쓰려면 true. (대체 버전) */
 const SHOW_REVERTED_TAG_IN_RESULT = false;
 
@@ -207,13 +210,17 @@ function DecisionIssueCard({
           {extra}
         </div>
         {between}
-        <Paragraph.Text typography="st10" fontWeight="medium" color={adaptive.grey900}>
-          {content}
-        </Paragraph.Text>
+        {/* 칩은 이슈 제목 줄 오른쪽 끝에 붙여서, 제목과 세로 가운데가 항상 맞아요 (칩 32px 이라 위아래로 걸쳐 놓아 줄 높이는 그대로) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <Paragraph.Text typography="st10" fontWeight="medium" color={adaptive.grey900}>
+              {content}
+            </Paragraph.Text>
+          </div>
+          {right && <div style={{ flexShrink: 0, margin: '-4px 0', display: 'flex', flexWrap: 'nowrap', whiteSpace: 'nowrap', alignItems: 'center', gap: 6 }}>{right}</div>}
+        </div>
         {after}
       </div>
-      {/* 작업 표의 처리 상태처럼 오른쪽 끝에 칩을 모아요. 칩이 32px라서 줄 높이(24px)는 늘리지 않고 위아래로 걸쳐 놓아요. */}
-      {right && <div style={{ flexShrink: 0, alignSelf: 'center', display: 'flex', flexWrap: 'nowrap', whiteSpace: 'nowrap', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>{right}</div>}
     </div>
   );
   return (
@@ -257,27 +264,34 @@ function DecisionIssueCard({
                   taskNo(change, i),
                   taskTitle(t),
                   change.issueTitle!,
-                  chipPos === 'title' ? small : undefined,
+                  <>
+                    {change.decisionKey && (
+                      <Paragraph.Text typography="t7" color={adaptive.grey500}>
+                        {`· 결정 사항 ID ${change.decisionKey}`}
+                      </Paragraph.Text>
+                    )}
+                    {chipPos === 'title' ? small : null}
+                  </>,
                   n === myTasks.length - 1,
                   chipPos === 'right' ? status : undefined,
-                  // 이슈 제목 위: 작성자 · 시각 · 결정 사항 ID (글자 크기 · 색은 원래 줄 그대로)
+                  undefined,
+                  // 이슈 제목 아래: 작성자 · 시각, 그 아래 바뀐 이유 (글자 크기 · 색은 원래 줄 그대로)
                   metaLine ? (
-                    <Paragraph.Text typography="t7" color={adaptive.grey600}>
-                      {metaLine}
-                    </Paragraph.Text>
-                  ) : undefined,
-                  // 이슈 제목 아래: 바뀐 이유 (원래 모양 그대로)
-                  metaLine ? (
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 4 }}>
-                      <div style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
-                        <Paragraph.Text typography="t7" color={adaptive.grey500}>
-                          바뀐 이유
+                    <>
+                      <Paragraph.Text typography="t7" color={adaptive.grey600}>
+                        {metaLine}
+                      </Paragraph.Text>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 4 }}>
+                        <div style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+                          <Paragraph.Text typography="t7" color={adaptive.grey500}>
+                            바뀐 이유
+                          </Paragraph.Text>
+                        </div>
+                        <Paragraph.Text typography="t7" color={adaptive.grey800}>
+                          {change.reason}
                         </Paragraph.Text>
                       </div>
-                      <Paragraph.Text typography="t7" color={adaptive.grey800}>
-                        {change.reason}
-                      </Paragraph.Text>
-                    </div>
+                    </>
                   ) : undefined
                 )}
               </React.Fragment>
@@ -843,7 +857,8 @@ export function Detail({
   const myProgress = myTask ? taskProgress(myTask) : undefined;
   // 대체 버전 CLI 탭: 현재 상태는 3단계. 답하면 "확인 완료", "작업 반영했어요"를 누르면 "작업 반영"
   const inCard = STANDALONE && cli && !SHOW_TASK_TABLE && !!change.issueTitle && myTasks.length > 0;
-  const cardMeta = `${change.author} · ${formatWhen(change.timestamp)}${change.decisionKey ? ` · 결정 사항 ID ${change.decisionKey}` : ''}`;
+  const cardMeta = `${change.author} · ${formatWhen(change.timestamp)}`;
+  const plainMeta = `${cardMeta}${change.decisionKey ? ` · 결정 사항 ID ${change.decisionKey}` : ''}`;
   const simpleFlow = STANDALONE && cli;
   const stepFlow = simpleFlow ? STATUS_FLOW_SIMPLE : STATUS_FLOW;
   const currentIdx = simpleFlow
@@ -976,7 +991,7 @@ export function Detail({
       </div>
 
       {/* 답해야 하는 변경: 제목 아래 주황 강조 (대체 버전 · CLI 탭) */}
-      {STANDALONE && cli && reviewStatus(change) === '대기' && !showNotice && (
+      {STANDALONE && cli && SHOW_ANSWER_NEEDED_BUTTON && reviewStatus(change) === '대기' && !showNotice && (
         <div style={{ marginTop: 12 }}>
           {/* 파랑 윤곽 버튼: 누르면 아래 "지금 해야 할 일"(답하는 영역)으로 부드럽게 이동해요 */}
           <button
@@ -1010,7 +1025,7 @@ export function Detail({
         <Paragraph.Text typography="t7" color={adaptive.grey600}>
           {cli
             ? STANDALONE
-            ? cardMeta // 대체 버전: "근거"는 없애요
+            ? plainMeta // 대체 버전: "근거"는 없애요
             : `${change.author} · ${formatWhen(change.timestamp)} · 근거: ${evidence}${change.decisionKey ? ` · 결정 사항 ID ${change.decisionKey}` : ''}`
             : `${who} · ${relTime(change.timestamp)} · ${change.changedAt} · 근거: ${evidence}`}
         </Paragraph.Text>
