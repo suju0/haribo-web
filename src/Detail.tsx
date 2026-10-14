@@ -171,7 +171,7 @@ function DecisionIssueCard({
 }) {
   if (STANDALONE && !change.issueTitle) return null;
   // 아이콘 · "이슈 | 결정이 필요한 과제" (한 줄) · 내용 (다음 줄)
-  const row = (icon: React.ReactNode, label: string, desc: string, content: string, extra?: React.ReactNode, last?: boolean) => (
+  const row = (icon: React.ReactNode, label: string, desc: string, content: string, extra?: React.ReactNode, last?: boolean, right?: React.ReactNode) => (
     <div
       style={{
         padding: '20px 0',
@@ -199,6 +199,8 @@ function DecisionIssueCard({
           {content}
         </Paragraph.Text>
       </div>
+      {/* 작업 표의 처리 상태처럼 오른쪽 끝에 칩을 모아요. 칩이 32px라서 줄 높이(24px)는 늘리지 않고 위아래로 걸쳐 놓아요. */}
+      {right && <div style={{ flexShrink: 0, maxWidth: 172, minHeight: CHIP_ROW_H, margin: '-4px 0', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>{right}</div>}
     </div>
   );
   return (
@@ -214,11 +216,17 @@ function DecisionIssueCard({
       {change.issueTitle && myTasks && myTasks.length > 0
         ? myTasks.map(({ t, i }, n) => {
             const p = taskProgress(t);
+            // 작업 표의 처리 상태와 같은 칩(32px). 단계가 쌓이면 [확인 완료] [작업 반영] ... 처럼 두 개 이상 붙어요.
             const status =
               t.state === 'pending' ? (
-                <Chip inline tone="orange">대기</Chip>
+                <Chip tone="orange">대기</Chip>
               ) : (
-                <Chip inline tone={p === 'done' ? 'green' : p === 'applied' ? 'blueFill' : 'blue'}>{PROGRESS_LABEL[p]}</Chip>
+                <>
+                  <Chip tone="blue">{PROGRESS_LABEL.ack}</Chip>
+                  {(p === 'applied' || p === 'done') && <Chip tone="blueFill">{PROGRESS_LABEL.applied}</Chip>}
+                  {p === 'done' && <Chip tone="green">{PROGRESS_LABEL.done}</Chip>}
+                  {t.state === 'accepted' && t.awareness && <Chip tone="gray">{t.awareness === '몰랐음' ? '몰랐다' : '알았다'}</Chip>}
+                </>
               );
             return (
               <React.Fragment key={t.name}>
@@ -230,8 +238,9 @@ function DecisionIssueCard({
                   taskNo(change, i),
                   taskTitle(t),
                   change.issueTitle!,
-                  status,
-                  n === myTasks.length - 1
+                  undefined,
+                  n === myTasks.length - 1,
+                  status
                 )}
               </React.Fragment>
             );
