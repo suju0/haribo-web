@@ -365,6 +365,7 @@ export function App() {
         onBack={backToInbox}
         variant={isCli ? 'cli' : 'default'}
         onAnswer={board.answerChange}
+        onProgress={board.setProgress}
         peers={isCli ? sortChanges(changes).filter((c) => !c.hiddenClosed) : undefined}
         onPeerSelect={board.open}
         viewerRole={isCli ? cliViewerInfo.role : undefined}

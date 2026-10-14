@@ -25,12 +25,17 @@ import {
   isNewDecision,
   formatWhen,
   isPending,
+  PROGRESS_LABEL,
   relTime,
   reviewStatus,
   taskNo,
   taskOwner,
+  taskProgress,
   taskTitle,
+  needsReapplyHint,
+  type TaskProgress,
 } from './data';
+import { StatusMenu } from './StatusMenu';
 import { TaskCheck, type TaskCheckState } from './TaskCheck';
 import { CheckMotionSwitch, setCheckMotion } from './checkMotion';
 import { ANSWER_NEEDED, AUTO_CLOSED_NOTICE, REAPPLY_HINT, STANDALONE } from './copy';
@@ -44,6 +49,9 @@ type ReplyMode = 'none' | 'question' | 'request';
  * (기존 탭은 이 값과 상관없이 그대로 보여요)
  */
 const SHOW_AGENT_CONTEXT_IN_CLI = false;
+
+/** 칩이 붙어도 붙지 않아도 줄 높이가 같도록 고정하는 높이(칩 23px + 여유) */
+const CHIP_ROW_H = 24;
 
 /**
  * 작업 표 체크 아이콘의 움직임 두 가지(토스 방식 · 기존 스프링 방식)를 비교하는 스위치 표시 여부.
@@ -119,16 +127,18 @@ function ValueBox({ label, value, after, tag }: { label: string; value: string; 
       }}
     >
       {tag ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: CHIP_ROW_H }}>
           <Paragraph.Text typography="st12" color={after ? adaptive.blue700 : adaptive.grey600}>
             {label}
           </Paragraph.Text>
           {tag}
         </div>
       ) : (
-        <Paragraph.Text typography="st12" color={after ? adaptive.blue700 : adaptive.grey600}>
-          {label}
-        </Paragraph.Text>
+        <div style={{ display: 'flex', alignItems: 'center', height: STANDALONE ? CHIP_ROW_H : undefined }}>
+          <Paragraph.Text typography="st12" color={after ? adaptive.blue700 : adaptive.grey600}>
+            {label}
+          </Paragraph.Text>
+        </div>
       )}
       <Paragraph.Text typography="st11" fontWeight="medium" color={adaptive.grey900}>
         {value}
@@ -155,7 +165,7 @@ function DecisionIssueCard({ change }: { change: DecisionChange }) {
     >
       {icon}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', whiteSpace: 'nowrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', whiteSpace: 'nowrap', minHeight: STANDALONE ? CHIP_ROW_H : undefined }}>
           <Paragraph.Text typography="t7" fontWeight="bold" color={adaptive.grey900}>
             {label}
           </Paragraph.Text>
@@ -213,7 +223,7 @@ function NewDecisionCard({ value }: { value: string }) {
       }}
     >
       <Paragraph.Text typography="st12" color={adaptive.blue700}>
-        {STANDALONE ? '확정된 결과' : '새로 생긴 결정'}
+        새로 생긴 결정
       </Paragraph.Text>
       <Paragraph.Text typography="st11" fontWeight="medium" color={adaptive.grey900}>
         {value}
@@ -227,7 +237,12 @@ function RelationFlow({
   change,
   onAnswer,
   onNext,
+  progress,
+  onProgress,
 }: {
+  /** 대체 버전: 내 작업 진행 상태와 바꾸는 함수 */
+  progress?: TaskProgress;
+  onProgress?: (p: TaskProgress) => void;
   change: DecisionChange;
   onAnswer: (a: Omit<Answer, 'at'>) => void;
   /** 있으면 답변 박스 오른쪽 아래에 "다음 변경"을 보여줘요 */
@@ -265,6 +280,12 @@ function RelationFlow({
           <Chip tone="blueFill">답함</Chip>
           <Chip tone="blueFill">{answered.relation}</Chip>
           {answered.awareness && <Chip tone="blueFill">{answered.awareness}</Chip>}
+          {/* 관계있다고 답한 작업만 진행 상태를 고를 수 있어요 (작업 표 처리 상태에 그대로 보여요) */}
+          {STANDALONE && progress && onProgress && answered.relation === '관계있다' && (
+            <div style={{ marginLeft: 'auto' }}>
+              <StatusMenu value={progress} onChange={onProgress} />
+            </div>
+          )}
         </div>
         {answered.reason && (
           <div style={{ marginTop: 10 }}>
@@ -657,7 +678,10 @@ export function Detail({
   onPeerSelect,
   autoClosedNotice,
   viewerRole,
+  onProgress,
 }: {
+  /** 대체 버전: 내 작업 진행 상태 바꾸기 */
+  onProgress?: (role: string, p: TaskProgress) => void;
   /** 대체 버전 CLI 탭: 지금 보는 사람의 역할(예: QA). 작업 표에서 "내가 답한 작업"을 가려내는 데 써요 */
   viewerRole?: string;
   /** 대체 버전: 상세를 보는 중에 원래 값으로 돌아와 자동으로 닫혔을 때 한 줄 안내를 띄워요 */
@@ -700,6 +724,11 @@ export function Detail({
     ? `PR #${change.pr?.number} 「${change.pr?.title}」`
     : change.evidence ?? ([...change.relatedFiles, ...change.relatedCode].join(', ') || '근거 없음');
 
+  const myTask = viewerRole
+    ? change.affectedTasks.find((t) => t.state === 'accepted' && (t.owner === viewerRole || t.name.startsWith(`${viewerRole} /`)))
+    : undefined;
+  const myProgress = myTask ? taskProgress(myTask) : undefined;
+
   const submit = () => {
     if (mode === 'none' || !text.trim()) return;
     onReply(mode, text.trim());
@@ -741,7 +770,7 @@ export function Detail({
 
       {/* 제목 + 칩 + 목록으로 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0, minHeight: STANDALONE ? 30 : undefined }}>
           <Paragraph.Text typography="t5" fontWeight="bold" color={adaptive.grey900}>
             {cli ? change.title : (change.decisionKey ?? change.title)}
           </Paragraph.Text>
@@ -985,7 +1014,10 @@ export function Detail({
                   <>
                     {t.state === 'pending' && <Chip tone="orange">대기</Chip>}
                     {(t.state === 'accepted' || t.state === 'rejected') &&
-                      (t.workDone ? <Chip tone="green">작업 완료</Chip> : <Chip tone="blue">확인 완료</Chip>)}
+                      (() => {
+                        const p = taskProgress(t);
+                        return <Chip tone={p === 'done' ? 'green' : p === 'applied' ? 'blueFill' : 'blue'}>{PROGRESS_LABEL[p]}</Chip>;
+                      })()}
                     {t.state === 'auto-closed' && <Chip tone="gray">자동 닫힘</Chip>}
                     {t.state === 'accepted' && t.awareness && <Chip tone="gray">{t.awareness === '몰랐음' ? '몰랐다' : '알았다'}</Chip>}
                   </>
@@ -1057,7 +1089,7 @@ export function Detail({
         <SectionTitle
           description={change.recommendedAction}
           bottom={0}
-          right={STANDALONE && change.previousAnswer?.relation === '관계있다' && !change.answer ? <ReapplyNotice /> : undefined}
+          right={STANDALONE && needsReapplyHint(change) && !change.answer ? <ReapplyNotice /> : undefined}
         >
           지금 해야 할 일
         </SectionTitle>
@@ -1091,6 +1123,8 @@ export function Detail({
           change={change}
           onAnswer={(a) => onAnswer?.(a)}
           onNext={acked && total > 1 ? onNext : undefined}
+          progress={myProgress}
+          onProgress={viewerRole && onProgress ? (p) => onProgress(viewerRole, p) : undefined}
           />
         </>
       ) : (

@@ -26,7 +26,15 @@ export interface AffectedTask {
   completed?: boolean;
   /** 대체 버전: 담당자가 이 변경에 답한 뒤 실제 작업까지 끝냈으면 true (처리 상태 "작업 완료") */
   workDone?: boolean;
+  /** 대체 버전: 내가 답한 뒤 작업이 어디까지 갔는지 (없으면 확인 완료) */
+  progress?: TaskProgress;
 }
+
+/** 작업 진행 상태: 확인 완료(답한 직후 기본) → 작업 반영 → 처리 완료 */
+export type TaskProgress = 'ack' | 'applied' | 'done';
+export const PROGRESS_ORDER: TaskProgress[] = ['ack', 'applied', 'done'];
+export const PROGRESS_LABEL: Record<TaskProgress, string> = { ack: '확인 완료', applied: '작업 반영', done: '처리 완료' };
+export const taskProgress = (t: AffectedTask): TaskProgress => t.progress ?? (t.workDone ? 'done' : 'ack');
 
 /** 답하기: 관계있다/관계없다 → (관계있다면) 알았다/몰랐다, (관계없다면) 이유 */
 export interface Answer {
@@ -395,8 +403,9 @@ export type ReviewStatus = '대기' | '답함' | '대체됨';
 export const reviewStatus = (c: DecisionChange): ReviewStatus =>
   c.autoClosed || c.supersededBy ? '대체됨' : isPending(c) ? '대기' : '답함';
 
-/** "이미 반영하셨다면 원래대로 다시 고쳐야 해요" 안내를 붙일지: 이전 버전에 "관계있다"로 답한 경우에만 */
-export const needsReapplyHint = (c: DecisionChange) => c.previousAnswer?.relation === '관계있다';
+/** "이미 이전 버전을 반영했다면 최신 버전으로 작업해 주세요" 안내: 새 버전이거나 되돌림이면 붙이고, 이전 버전에 "관계없다"로 답한 사람은 뺀다 */
+export const needsReapplyHint = (c: DecisionChange) =>
+  c.previousAnswer?.relation === '관계있다' || ((!!c.isNewVersion || !!c.revertedTo) && c.previousAnswer?.relation !== '관계없다');
 
 /** 언제: 오늘이면 "오후 2:13", 아니면 "10월 13일 오후 2:13" */
 export const formatWhen = (ts: number, now = Date.now()) => {

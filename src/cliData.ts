@@ -51,7 +51,7 @@ function rulePayment(viewer: CliViewer): DecisionChange {
   const tasks: AffectedTask[] = [
     task('T-22', '디자이너', '주문 내역 화면 디자인', '결제 금액 표시가 서버 값을 쓰는지 확인 필요', t22),
     // 대체 버전: 하린 시점에서는 서준이 주문 API 작업까지 끝낸 뒤라서 "작업 완료"로 보여줘요.
-    task('T-21', '백엔드', '주문 API', '결제 금액을 서버에서만 계산하도록 확인 필요', seojunDone, STANDALONE && viewer === 'harin' ? { workDone: true } : {}),
+    task('T-21', '백엔드', '주문 API', '결제 금액을 서버에서만 계산하도록 확인 필요', seojunDone, STANDALONE && viewer === 'harin' ? { workDone: true, progress: 'done' as const } : {}),
     task('T-31', '백엔드', '환불 API', '환불 금액도 서버 계산 값을 쓰는지 확인 필요', seojunDone),
     task('T-30', 'QA', '배송 테스트 케이스', '완료된 작업이에요. 결제 금액 케이스를 다시 볼지 확인 필요', 'pending', { completed: true }),
   ];

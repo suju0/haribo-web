@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Answer, DecisionChange, isPending, sortChanges } from './data';
+import { Answer, DecisionChange, PROGRESS_LABEL, TaskProgress, isPending, sortChanges } from './data';
 
 /**
  * 변경 목록 + 선택한 변경 + 답하기 동작을 한 묶음("보드")으로 관리해요.
@@ -81,6 +81,16 @@ export function useBoard(
     toast(editing ? '답을 바꿨어요.' : '답했어요. 확인할 변경 상태가 답함으로 바뀌었어요.');
   };
 
+  /** 대체 버전: 내 작업(역할)의 진행 상태를 바꿔요 (확인 완료 → 작업 반영 → 처리 완료) */
+  const setProgress = (role: string, progress: TaskProgress) => {
+    if (!selected) return;
+    const tasks = selected.affectedTasks.map((t) =>
+      t.state === 'accepted' && (t.owner === role || t.name.startsWith(`${role} /`)) ? { ...t, progress, workDone: progress === 'done' } : t
+    );
+    update(selected.id, { affectedTasks: tasks });
+    toast(`내 작업 상태를 ${PROGRESS_LABEL[progress]}(으)로 바꿨어요.`);
+  };
+
   const reply = (kind: 'question' | 'request', text: string) => {
     if (!selected) return;
     update(selected.id, { responses: [...selected.responses, { kind, text, at: '방금' }] });
@@ -140,6 +150,7 @@ export function useBoard(
     openIssue,
     acknowledge,
     answerChange,
+    setProgress,
     reply,
     toggleTask,
     rollback,

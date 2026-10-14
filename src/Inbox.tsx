@@ -293,7 +293,7 @@ function PendingRow({ change, onOpen }: { change: DecisionChange; onOpen: (id: s
         left={<KindChip change={change} />}
         contents={
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minHeight: STANDALONE ? 26 : undefined }}>
               <Paragraph.Text typography="st11" fontWeight="bold" color={adaptive.grey900}>
                 {change.title}
               </Paragraph.Text>
@@ -368,7 +368,7 @@ function DoneRow({
         contents={
           // 대체됨은 내용만 흐리게 해요(왼쪽 칩은 그대로 또렷하게)
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0, opacity: superseded ? 0.55 : undefined }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minHeight: STANDALONE ? 26 : undefined }}>
               <Paragraph.Text typography="st11" fontWeight="bold" color={adaptive.grey900}>
                 {change.title}
               </Paragraph.Text>
