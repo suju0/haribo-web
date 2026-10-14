@@ -67,7 +67,7 @@ function rulePayment(viewer: CliViewer): DecisionChange {
     source: 'ai-chat',
     decisionKey: 'RULE-PAYMENT-AMOUNT-SERVER',
     issueTitle: '결제 금액을 어디에서 계산할지 정하기',
-    issueStatus: STANDALONE ? '완료' : '진행 중',
+    issueStatus: '진행 중',
     version: { from: null, to: 1 },
     kindLabel: '지속되는 제약 조건',
     processed: { done, total: shown.length },

@@ -370,6 +370,8 @@ export const relTime = (ts: number) => {
 };
 
 export const STATUS_FLOW: Status[] = ['NEW', 'VIEWED', 'ACKNOWLEDGED', 'ACTIONED', 'RESOLVED'];
+/** 대체 버전 CLI 탭: 현재 상태는 최대 3단계 (새 변경 → 확인 완료 → 작업 반영) */
+export const STATUS_FLOW_SIMPLE: Status[] = ['NEW', 'ACKNOWLEDGED', 'ACTIONED'];
 export const STATUS_LABEL: Record<Status, string> = {
   NEW: '새 변경',
   VIEWED: '열어봄',

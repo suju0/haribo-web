@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import {
   Button,
   Checkbox,
@@ -17,8 +17,10 @@ import {
   AffectedTask,
   Answer,
   DecisionChange,
+  Status,
   STATUS_DESC,
   STATUS_FLOW,
+  STATUS_FLOW_SIMPLE,
   STATUS_LABEL,
   isAiChat,
   isAiFound,
@@ -52,6 +54,13 @@ const SHOW_AGENT_CONTEXT_IN_CLI = false;
 
 /** 칩이 붙어도 붙지 않아도 줄 높이가 같도록 고정하는 높이(칩 23px + 여유) */
 const CHIP_ROW_H = 24;
+
+/** 영향받는 작업 표(담당자들의 상태). 내부 논의로 지금은 숨겨 두었어요. 다시 쓰려면 true. (대체 버전 · CLI 탭)
+ *  숨기는 동안에는 내 작업만 "이슈 카드" 안에 보여요. */
+const SHOW_TASK_TABLE = false;
+
+/** 내 답변 카드의 "진행 상태 드롭다운"(확인 완료/작업 반영/처리 완료). 지금은 숨기고 "작업 반영했어요" 체크 버튼을 써요. */
+const SHOW_STATUS_DROPDOWN = false;
 
 /**
  * 작업 표 체크 아이콘의 움직임 두 가지(토스 방식 · 기존 스프링 방식)를 비교하는 스위치 표시 여부.
@@ -150,7 +159,16 @@ function ValueBox({ label, value, after, tag }: { label: string; value: string; 
 /* ───────── CLI 탭 전용 조각 (화면에 들어가는 데이터.md) ───────── */
 
 /** 이슈 → 결정 사항 카드: 이슈(결정이 필요한 과제)와 결정 사항(확정된 결과)을 한 카드에 보여줘요 */
-function DecisionIssueCard({ change }: { change: DecisionChange }) {
+function DecisionIssueCard({
+  change,
+  myTasks,
+  viewerRole,
+}: {
+  change: DecisionChange;
+  /** 대체 버전: 내 작업들. 있으면 "이슈" 줄 대신 작업 번호 · 작업 이름 · 처리 상태로 보여줘요 */
+  myTasks?: { t: AffectedTask; i: number }[];
+  viewerRole?: string;
+}) {
   if (STANDALONE && !change.issueTitle) return null;
   // 아이콘 · "이슈 | 결정이 필요한 과제" (한 줄) · 내용 (다음 줄)
   const row = (icon: React.ReactNode, label: string, desc: string, content: string, extra?: React.ReactNode, last?: boolean) => (
@@ -193,7 +211,32 @@ function DecisionIssueCard({ change }: { change: DecisionChange }) {
         background: adaptive.background,
       }}
     >
-      {change.issueTitle &&
+      {change.issueTitle && myTasks && myTasks.length > 0
+        ? myTasks.map(({ t, i }, n) => {
+            const p = taskProgress(t);
+            const status =
+              t.state === 'pending' ? (
+                <Chip inline tone="orange">대기</Chip>
+              ) : (
+                <Chip inline tone={p === 'done' ? 'green' : p === 'applied' ? 'blueFill' : 'blue'}>{PROGRESS_LABEL[p]}</Chip>
+              );
+            return (
+              <React.Fragment key={t.name}>
+                {row(
+                  // 물음표 아이콘 자리: 답하면 색이 바뀌며 튕기는 체크
+                  <div style={{ height: CHIP_ROW_H, display: 'flex', alignItems: 'center' }}>
+                    <TaskCheck state={taskCheckState(t, viewerRole)} />
+                  </div>,
+                  taskNo(change, i),
+                  taskTitle(t),
+                  change.issueTitle!,
+                  status,
+                  n === myTasks.length - 1
+                )}
+              </React.Fragment>
+            );
+          })
+        : change.issueTitle &&
         row(
           <IconIssue />,
           '이슈',
@@ -222,9 +265,11 @@ function NewDecisionCard({ value }: { value: string }) {
         gap: 10,
       }}
     >
-      <Paragraph.Text typography="st12" color={adaptive.blue700}>
-        새로 생긴 결정
-      </Paragraph.Text>
+      <div style={{ display: 'flex', alignItems: 'center', height: STANDALONE ? CHIP_ROW_H : undefined }}>
+        <Paragraph.Text typography="st12" color={adaptive.blue700}>
+          새로 생긴 결정
+        </Paragraph.Text>
+      </div>
       <Paragraph.Text typography="st11" fontWeight="medium" color={adaptive.grey900}>
         {value}
       </Paragraph.Text>
@@ -253,6 +298,7 @@ function RelationFlow({
   /** 이미 한 답을 고치는 중인지 */
   const [editing, setEditing] = useState(false);
   const answered = change.answer;
+  const applied = progress === 'applied' || progress === 'done';
 
   const startEdit = () => {
     setRelation(answered?.relation ?? null);
@@ -281,10 +327,36 @@ function RelationFlow({
           <Chip tone="blueFill">{answered.relation}</Chip>
           {answered.awareness && <Chip tone="blueFill">{answered.awareness}</Chip>}
           {/* 관계있다고 답한 작업만 진행 상태를 고를 수 있어요 (작업 표 처리 상태에 그대로 보여요) */}
-          {STANDALONE && progress && onProgress && answered.relation === '관계있다' && (
+          {STANDALONE && SHOW_STATUS_DROPDOWN && progress && onProgress && answered.relation === '관계있다' && (
             <div style={{ marginLeft: 'auto' }}>
               <StatusMenu value={progress} onChange={onProgress} />
             </div>
+          )}
+          {/* "관계있다"로 답한 카드에만: 내 작업을 반영했으면 직접 눌러요. 다시 누르면 풀려요. (내 담당자 본인만 누를 수 있어요) */}
+          {STANDALONE && !SHOW_STATUS_DROPDOWN && progress && onProgress && answered.relation === '관계있다' && (
+            <button
+              type="button"
+              aria-pressed={applied}
+              onClick={() => onProgress(applied ? 'ack' : 'applied')}
+              style={{
+                marginLeft: 'auto',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                height: 32,
+                padding: '0 14px 0 10px',
+                borderRadius: 10,
+                border: `1px solid ${applied ? adaptive.blue200 : adaptive.grey200}`,
+                background: applied ? adaptive.blue50 : adaptive.background,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              <span style={{ pointerEvents: 'none', display: 'inline-flex' }}>
+                <TaskCheck state={applied ? 'mine' : 'pending'} />
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 500, lineHeight: '19.5px', color: applied ? adaptive.blue700 : adaptive.grey700 }}>작업 반영했어요</span>
+            </button>
           )}
         </div>
         {answered.reason && (
@@ -554,11 +626,11 @@ function PeerBar({
  * 현재 상태 (간결형). 단계 설명은 현재 단계 이름 바로 아래에 서브 타이틀처럼 붙여서 보여줘요.
  * 단계 이름의 실제 위치를 재서 그 아래 가운데에 맞추고, 양 끝 단계에서는 화면 밖으로 나가지 않게 안쪽으로 밀어요.
  */
-function StatusProgress({ currentIdx, description }: { currentIdx: number; description: string }) {
+function StatusProgress({ flow, currentIdx, description }: { flow: Status[]; currentIdx: number; description: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const descRef = useRef<HTMLSpanElement>(null);
   const [left, setLeft] = useState<number | null>(null);
-  const label = STATUS_LABEL[STATUS_FLOW[currentIdx]];
+  const label = STATUS_LABEL[flow[currentIdx]];
 
   useLayoutEffect(() => {
     const measure = () => {
@@ -566,11 +638,11 @@ function StatusProgress({ currentIdx, description }: { currentIdx: number; descr
       const desc = descRef.current;
       if (!wrap || !desc) return;
       // 단계 이름 글자 굵기: TDS 기본(현재 700 / 나머지 600)보다 두 단계 얇게 (현재 500 / 나머지 400)
-      STATUS_FLOW.forEach((st) => {
+      flow.forEach((st) => {
         const el = [...wrap.querySelectorAll('*')].find(
           (e) => e.children.length === 0 && e.textContent?.trim() === STATUS_LABEL[st]
         ) as HTMLElement | undefined;
-        if (el) el.style.fontWeight = st === STATUS_FLOW[currentIdx] ? '500' : '400';
+        if (el) el.style.fontWeight = st === flow[currentIdx] ? '500' : '400';
       });
       const labelEl = [...wrap.querySelectorAll('*')].find((e) => e.children.length === 0 && e.textContent?.trim() === label);
       if (!labelEl) return;
@@ -589,7 +661,7 @@ function StatusProgress({ currentIdx, description }: { currentIdx: number; descr
   return (
     <div ref={wrapRef}>
       <ProgressStepper variant="compact" paddingTop="wide" activeStepIndex={currentIdx}>
-        {STATUS_FLOW.map((st) => (
+        {flow.map((st) => (
           <ProgressStep key={st} title={STATUS_LABEL[st]} />
         ))}
       </ProgressStepper>
@@ -715,7 +787,23 @@ export function Detail({
   const closed = byIssueNo !== undefined;
   // 확정안 2: 상세를 보던 중에 원래 값으로 돌아와 자동으로 닫힌 경우
   const showNotice = cli && !!(autoClosedNotice || change.hiddenClosed);
-  const currentIdx = STATUS_FLOW.indexOf(change.status);
+  const myTasks = (viewerRole
+    ? change.affectedTasks
+        .map((t, i) => ({ t, i }))
+        .filter(({ t }) => t.state !== 'auto-closed' && (t.owner === viewerRole || t.name.startsWith(`${viewerRole} /`)))
+    : []);
+  const myTask = myTasks.find(({ t }) => t.state === 'accepted')?.t;
+  const myProgress = myTask ? taskProgress(myTask) : undefined;
+  // 대체 버전 CLI 탭: 현재 상태는 3단계. 답하면 "확인 완료", "작업 반영했어요"를 누르면 "작업 반영"
+  const simpleFlow = STANDALONE && cli;
+  const stepFlow = simpleFlow ? STATUS_FLOW_SIMPLE : STATUS_FLOW;
+  const currentIdx = simpleFlow
+    ? myProgress === 'applied' || myProgress === 'done'
+      ? 2
+      : change.answer
+        ? 1
+        : 0
+    : STATUS_FLOW.indexOf(change.status);
   const ai = isAiFound(change);
   const fresh = isNewDecision(change);
 
@@ -723,11 +811,6 @@ export function Detail({
   const evidence = ai
     ? `PR #${change.pr?.number} 「${change.pr?.title}」`
     : change.evidence ?? ([...change.relatedFiles, ...change.relatedCode].join(', ') || '근거 없음');
-
-  const myTask = viewerRole
-    ? change.affectedTasks.find((t) => t.state === 'accepted' && (t.owner === viewerRole || t.name.startsWith(`${viewerRole} /`)))
-    : undefined;
-  const myProgress = myTask ? taskProgress(myTask) : undefined;
 
   const submit = () => {
     if (mode === 'none' || !text.trim()) return;
@@ -908,7 +991,13 @@ export function Detail({
       )}
 
       {/* 결정 사항 / 이슈 (CLI 탭) */}
-      {cli && <DecisionIssueCard change={change} />}
+      {cli && (
+        <DecisionIssueCard
+          change={change}
+          viewerRole={viewerRole}
+          myTasks={STANDALONE && !SHOW_TASK_TABLE ? myTasks : undefined}
+        />
+      )}
 
       {/* 변경 전 / 변경 후 (이전 값이 없는 새 결정은 카드 하나만) */}
       <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
@@ -936,7 +1025,8 @@ export function Detail({
 
       {STANDALONE && cli && SHOW_CHECK_MOTION_SWITCH && <CheckMotionSwitch />}
 
-      {/* 영향받는 작업 표 */}
+      {/* 영향받는 작업 표 (대체 버전 CLI 탭은 SHOW_TASK_TABLE 이 true 일 때만) */}
+      {(!(STANDALONE && cli) || SHOW_TASK_TABLE) && (
       <div
         style={{
           marginTop: 20,
@@ -1056,6 +1146,7 @@ export function Detail({
         })}
         </div>
       </div>
+      )}
       {/* 대체 버전: 작업 표는 담당자들의 답 현황만 보여주는 표라서, 작업 처리를 체크하라는 안내는 없어요 */}
       {!STANDALONE && !acked && !closed && (
         <div style={{ marginTop: 8 }}>
@@ -1220,7 +1311,7 @@ export function Detail({
                   ))}
                 </ProgressStepper>
               )}
-              <StatusProgress currentIdx={currentIdx} description={STATUS_DESC[change.status]} />
+              <StatusProgress flow={stepFlow} currentIdx={currentIdx} description={STATUS_DESC[stepFlow[currentIdx]] ?? STATUS_DESC[change.status]} />
             </div>
           ) : (
           <Stepper>
