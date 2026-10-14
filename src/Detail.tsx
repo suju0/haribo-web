@@ -38,6 +38,7 @@ import {
   type TaskProgress,
 } from './data';
 import { StatusMenu } from './StatusMenu';
+import { ChipPositionSwitch, useChipPosition } from './chipPosition';
 import { TaskCheck, type TaskCheckState } from './TaskCheck';
 import { CheckMotionSwitch, setCheckMotion } from './checkMotion';
 import { ANSWER_NEEDED, AUTO_CLOSED_NOTICE, REAPPLY_HINT, STANDALONE } from './copy';
@@ -58,6 +59,9 @@ const CHIP_ROW_H = 24;
 /** 영향받는 작업 표(담당자들의 상태). 내부 논의로 지금은 숨겨 두었어요. 다시 쓰려면 true. (대체 버전 · CLI 탭)
  *  숨기는 동안에는 내 작업만 "이슈 카드" 안에 보여요. */
 const SHOW_TASK_TABLE = false;
+
+/** 이슈 카드 안 상태 칩 위치(오른쪽 / 제목 옆) 비교 스위치. 정하고 나면 false 로 바꿔서 숨겨요. (대체 버전 전용) */
+const SHOW_CHIP_POSITION_SWITCH = true;
 
 /** 내 답변 카드의 "진행 상태 드롭다운"(확인 완료/작업 반영/처리 완료). 지금은 숨기고 "작업 반영했어요" 체크 버튼을 써요. */
 const SHOW_STATUS_DROPDOWN = false;
@@ -169,6 +173,7 @@ function DecisionIssueCard({
   myTasks?: { t: AffectedTask; i: number }[];
   viewerRole?: string;
 }) {
+  const chipPos = useChipPosition();
   if (STANDALONE && !change.issueTitle) return null;
   // 아이콘 · "이슈 | 결정이 필요한 과제" (한 줄) · 내용 (다음 줄)
   const row = (icon: React.ReactNode, label: string, desc: string, content: string, extra?: React.ReactNode, last?: boolean, right?: React.ReactNode) => (
@@ -200,7 +205,7 @@ function DecisionIssueCard({
         </Paragraph.Text>
       </div>
       {/* 작업 표의 처리 상태처럼 오른쪽 끝에 칩을 모아요. 칩이 32px라서 줄 높이(24px)는 늘리지 않고 위아래로 걸쳐 놓아요. */}
-      {right && <div style={{ flexShrink: 0, maxWidth: 172, minHeight: CHIP_ROW_H, margin: '-4px 0', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>{right}</div>}
+      {right && <div style={{ flexShrink: 0, alignSelf: 'center', display: 'flex', flexWrap: 'nowrap', whiteSpace: 'nowrap', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>{right}</div>}
     </div>
   );
   return (
@@ -228,6 +233,12 @@ function DecisionIssueCard({
                   {t.state === 'accepted' && t.awareness && <Chip tone="gray">{t.awareness === '몰랐음' ? '몰랐다' : '알았다'}</Chip>}
                 </>
               );
+            const small =
+              t.state === 'pending' ? (
+                <Chip inline tone="orange">대기</Chip>
+              ) : (
+                <Chip inline tone={p === 'done' ? 'green' : p === 'applied' ? 'blueFill' : 'blue'}>{PROGRESS_LABEL[p]}</Chip>
+              );
             return (
               <React.Fragment key={t.name}>
                 {row(
@@ -238,9 +249,9 @@ function DecisionIssueCard({
                   taskNo(change, i),
                   taskTitle(t),
                   change.issueTitle!,
-                  undefined,
+                  chipPos === 'title' ? small : undefined,
                   n === myTasks.length - 1,
-                  status
+                  chipPos === 'right' ? status : undefined
                 )}
               </React.Fragment>
             );
@@ -1033,6 +1044,7 @@ export function Detail({
       </div>
 
       {STANDALONE && cli && SHOW_CHECK_MOTION_SWITCH && <CheckMotionSwitch />}
+      {STANDALONE && cli && SHOW_CHIP_POSITION_SWITCH && !SHOW_TASK_TABLE && myTasks.length > 0 && <ChipPositionSwitch />}
 
       {/* 영향받는 작업 표 (대체 버전 CLI 탭은 SHOW_TASK_TABLE 이 true 일 때만) */}
       {(!(STANDALONE && cli) || SHOW_TASK_TABLE) && (
