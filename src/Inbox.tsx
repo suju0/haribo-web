@@ -23,6 +23,7 @@ import {
   relTime,
   reviewStatus,
   sortChanges,
+  taskProgress,
 } from './data';
 import { BlueFillChipWeight, Chip, ChipTone, FilterTabs, IconBellOff, IconClose, IconSparkle, ToggleSwitch } from './design';
 
@@ -339,6 +340,9 @@ function PendingRow({ change, onOpen }: { change: DecisionChange; onOpen: (id: s
 }
 
 /* ───────── 답한 변경 ───────── */
+/** 대체 버전: 지금 보는 담당자의 역할(예: 백엔드). 답한 변경 카드에서 "내 작업"이 어디까지 갔는지 가려내는 데 써요 */
+export const ViewerRoleContext = createContext<string | undefined>(undefined);
+
 function DoneRow({
   change,
   first,
@@ -356,6 +360,10 @@ function DoneRow({
   const handled = change.processed ? change.processed.done : change.status === 'RESOLVED' ? total : done;
 
   const superseded = !!change.supersededBy;
+  // 대체 버전: 진행 상태를 3단계(1 새 변경 · 2 확인 완료 · 3 작업 반영)로 미니 표시. 답한 카드는 2단계, "작업 반영했어요"를 누르면 3단계예요.
+  const role = useContext(ViewerRoleContext);
+  const myTask = role ? change.affectedTasks.find((t) => t.state === 'accepted' && (t.owner === role || t.name.startsWith(`${role} /`))) : undefined;
+  const miniStep = myTask && ['applied', 'done'].includes(taskProgress(myTask)) ? 3 : 2;
   return (
     <div style={{ ...rowLine(first), background: first && !superseded ? adaptive.blue50 : undefined }}>
       <ListRow
@@ -398,10 +406,10 @@ function DoneRow({
           superseded ? undefined : (
             <div style={{ width: 80, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
               <Paragraph.Text typography="t7" fontWeight="medium" color={adaptive.blue500}>
-                {STANDALONE ? `작업 ${handled}/${total} 답함` : `${handled}/${total} 처리`}
+                {STANDALONE ? (cli ? `${miniStep}/3 ${miniStep === 3 ? '작업 반영' : '확인 완료'}` : `작업 ${handled}/${total} 답함`) : `${handled}/${total} 처리`}
               </Paragraph.Text>
               <div style={{ width: 80 }}>
-                <ProgressBar progress={total === 0 ? 0 : handled / total} size="light" />
+                <ProgressBar progress={STANDALONE && cli ? miniStep / 3 : total === 0 ? 0 : handled / total} size="light" />
               </div>
             </div>
           )

@@ -5,7 +5,7 @@ import { Answer, DecisionChange, INITIAL_CHANGES, sortChanges } from './data';
 import { CLI_VIEWERS, CliViewer, applyAnswerToTasks, buildCliChanges } from './cliData';
 import { STANDALONE } from './copy';
 import { useBoard } from './useBoard';
-import { Inbox } from './Inbox';
+import { Inbox, ViewerRoleContext } from './Inbox';
 import { Detail } from './Detail';
 import {
   FilterTabs,
@@ -341,6 +341,7 @@ export function App() {
         onToast={showToast}
       />
     ) : showInbox ? (
+      <ViewerRoleContext.Provider value={isCli ? cliViewerInfo.role : undefined}>
       <Inbox
         key={isCli ? `cli-${cliViewer}` : 'main'}
         variant={isCli ? 'cli' : 'default'}
@@ -350,6 +351,7 @@ export function App() {
         onOpenIssue={board.openIssue}
         onToast={showToast}
       />
+      </ViewerRoleContext.Provider>
     ) : selected ? (
       <Detail
         key={`${isCli ? cliViewer : 'main'}-${selected.id}`}
