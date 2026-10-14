@@ -61,7 +61,7 @@ const CHIP_ROW_H = 24;
 const SHOW_TASK_TABLE = false;
 
 /** 이슈 카드 안 상태 칩 위치(오른쪽 / 제목 옆) 비교 스위치. 정하고 나면 false 로 바꿔서 숨겨요. (대체 버전 전용) */
-const SHOW_CHIP_POSITION_SWITCH = true;
+const SHOW_CHIP_POSITION_SWITCH = false;
 
 /** 내 답변 카드의 "진행 상태 드롭다운"(확인 완료/작업 반영/처리 완료). 지금은 숨기고 "작업 반영했어요" 체크 버튼을 써요. */
 const SHOW_STATUS_DROPDOWN = false;
@@ -227,10 +227,9 @@ function DecisionIssueCard({
                 <Chip tone="orange">대기</Chip>
               ) : (
                 <>
-                  <Chip tone="blue">{PROGRESS_LABEL.ack}</Chip>
-                  {(p === 'applied' || p === 'done') && <Chip tone="blueFill">{PROGRESS_LABEL.applied}</Chip>}
-                  {p === 'done' && <Chip tone="green">{PROGRESS_LABEL.done}</Chip>}
                   {t.state === 'accepted' && t.awareness && <Chip tone="gray">{t.awareness === '몰랐음' ? '몰랐다' : '알았다'}</Chip>}
+                  {/* 단계 칩은 하나만: [확인 완료] → "작업 반영했어요"를 누르면 파랑 채움 [작업 반영]으로 바뀌어요 */}
+                  <Chip tone={p === 'done' ? 'green' : p === 'applied' ? 'blueFill' : 'blue'}>{PROGRESS_LABEL[p]}</Chip>
                 </>
               );
             const small =

@@ -9,6 +9,7 @@ import { adaptive } from '@toss/tds-colors';
 import { Paragraph } from '@toss/tds-mobile';
 
 export type ChipPosition = 'right' | 'title';
+// 오른쪽으로 정했어요. 비교하려면 SHOW_CHIP_POSITION_SWITCH 를 true 로 바꾸세요.
 let current: ChipPosition = 'right';
 const listeners = new Set<() => void>();
 export const setChipPosition = (p: ChipPosition) => {
