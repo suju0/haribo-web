@@ -84,6 +84,9 @@ function CliSourceChips({ change }: { change: DecisionChange }) {
 /** 목록 줄의 "(완료된 이슈)" 문구. 이슈 카드의 [완료] 칩으로 대신해서 숨겼어요. 다시 쓰려면 true. (대체 버전) */
 const SHOW_DONE_ISSUE_TEXT = false;
 
+/** 되돌림 줄의 "· 내가 v2에 답한 이력이 있어요" 안내. 일단 숨겼어요. 다시 쓰려면 true. (대체 버전) */
+const SHOW_PREVIOUS_ANSWER_NOTE = false;
+
 /** 대체 버전: 완료된 이슈의 [완료] 칩. 제목 옆 칩들 맨 끝에 붙어요 (변경 상세의 칩 순서와 같아요) */
 function DoneIssueChip({ change }: { change: DecisionChange }) {
   const cli = useCli();
@@ -221,7 +224,7 @@ function ChangeLine({ change, muted }: { change: DecisionChange; muted?: boolean
   return (
     <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px 8px' }}>
       {line}
-      {change.previousAnswer && (
+      {change.previousAnswer && (!STANDALONE || SHOW_PREVIOUS_ANSWER_NOTE) && (
         <Paragraph.Text typography="t7" color={adaptive.grey500}>
           {`· 내가 v${change.revertedTo.from}에 답한 이력이 있어요`}
         </Paragraph.Text>
