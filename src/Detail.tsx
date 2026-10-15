@@ -938,7 +938,16 @@ export function Detail({
               )}
               {change.revertedTo && <Chip inline tone="purple">되돌림</Chip>}
               {change.isNewVersion && change.version && <Chip inline tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
-              {change.source === 'code' ? (
+              {STANDALONE ? (
+                // 출처 칩 (대체 버전): [AI 대화] [코드] [슬랙]. 모두 같은 모양이에요.
+                change.source === 'code' ? (
+                  <Chip inline tone="ai">코드</Chip>
+                ) : change.source === 'slack' ? (
+                  <Chip inline tone="ai">슬랙</Chip>
+                ) : (
+                  <Chip inline tone="ai" icon={<IconSparkle />}>AI 대화</Chip>
+                )
+              ) : change.source === 'code' ? (
                 <Chip inline tone="gray">코드에서 바꿈</Chip>
               ) : (
                 <Chip inline tone="ai" icon={<IconSparkle />}>

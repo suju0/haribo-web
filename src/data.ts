@@ -6,7 +6,7 @@ export type Certainty = 'confirmed' | 'inferred'; // MD §19.5 확정 vs 추론
 export type DecisionState = '확정' | '대체됨' | '검토 중' | '철회됨' | '신규';
 /** 결정 사항을 누가 찾아냈는지: 사람이 바꾼 것 / PR에서 AI가 찾아낸 것 */
 /** human: 사람이 바꿈 · pr-ai: PR에서 AI가 찾아냄 · ai-chat: CLI의 AI 대화에서 정해짐 */
-export type Source = 'human' | 'pr-ai' | 'ai-chat' | 'code';
+export type Source = 'human' | 'pr-ai' | 'ai-chat' | 'code' | 'slack';
 
 /** 영향받는 작업 하나에 대한 담당자의 답 (CLI 시험 데이터에서 써요) */
 export type TaskState = 'pending' | 'accepted' | 'rejected' | 'auto-closed';
@@ -406,8 +406,7 @@ export const reviewStatus = (c: DecisionChange): ReviewStatus =>
   c.autoClosed || c.supersededBy ? '대체됨' : isPending(c) ? '대기' : '답함';
 
 /** "이미 이전 버전을 반영했다면 최신 버전으로 작업해 주세요" 안내: 새 버전이거나 되돌림이면 붙이고, 이전 버전에 "관계없다"로 답한 사람은 뺀다 */
-export const needsReapplyHint = (c: DecisionChange) =>
-  c.previousAnswer?.relation === '관계있다' || ((!!c.isNewVersion || !!c.revertedTo) && c.previousAnswer?.relation !== '관계없다');
+export const needsReapplyHint = (c: DecisionChange) => c.previousAnswer?.relation === '관계있다';
 
 /** 언제: 오늘이면 "오후 2:13", 아니면 "10월 13일 오후 2:13" */
 export const formatWhen = (ts: number, now = Date.now()) => {

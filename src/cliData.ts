@@ -160,6 +160,8 @@ const answered = (relation: Answer['relation'], awareness: Answer['awareness'], 
 });
 
 interface ReviseSpec {
+  /** 어디서 바꿨는지 (없으면 AI 대화) */
+  source?: 'ai-chat' | 'code' | 'slack';
   id: string;
   no: number;
   iso: string;
@@ -186,7 +188,7 @@ function revise(sp: ReviseSpec, patch: Partial<DecisionChange> = {}, taskState: 
     issueNo: sp.no,
     timestamp: kst(sp.iso),
     author: '민호',
-    source: 'ai-chat',
+    source: sp.source ?? 'ai-chat',
     decisionKey: sp.key,
     issueTitle: sp.issueTitle,
     issueStatus: '진행 중',
@@ -271,6 +273,7 @@ function reviseScenarios(): DecisionChange[] {
   const shipNew: ReviseSpec = {
     ...shipOld,
     id: 'CLI-SPEC-SHIPPING-FEE-V3',
+    source: STANDALONE ? 'slack' : undefined,
     no: 4,
     iso: '2026-10-11T16:02:00',
     title: '배송비는 3,500원으로 한다',
@@ -302,6 +305,7 @@ function reviseScenarios(): DecisionChange[] {
   const couponNew: ReviseSpec = {
     ...couponOld,
     id: 'CLI-RULE-COUPON-STACK-V3',
+    source: STANDALONE ? 'code' : undefined,
     no: 5,
     iso: '2026-10-11T16:30:00',
     title: '쿠폰은 중복 사용을 허용하지 않는다',
