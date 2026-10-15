@@ -283,8 +283,8 @@ function CliEmptyCards() {
   );
   return (
     <>
-      {card(adaptive.blue100, TO_ANSWER, `아직 ${TO_ANSWER}이 없어요`, `새로운 변경이 감지되면 이곳에서 ${TELL_YOU}`)}
-      {card(adaptive.grey200, ANSWERED, `아직 ${ANSWERED}이 없어요`, '변경에 답하면 이곳에 모여요')}
+      {card(adaptive.blue100, TO_ANSWER, `${STANDALONE ? "지금" : "아직"} ${TO_ANSWER}이 없어요`, `새로운 변경이 감지되면 이곳에서 ${TELL_YOU}`)}
+      {card(adaptive.grey200, ANSWERED, `${STANDALONE ? "지금" : "아직"} ${ANSWERED}이 없어요`, '변경에 답하면 이곳에 모여요')}
     </>
   );
 }
