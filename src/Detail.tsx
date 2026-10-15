@@ -253,7 +253,7 @@ function DecisionIssueCard({
         ? myTasks.map(({ t, i }, n) => {
             const p = taskProgress(t);
             // 작업 표의 처리 상태와 같은 칩(32px). 단계가 쌓이면 [확인 완료] [작업 반영] ... 처럼 두 개 이상 붙어요.
-            const status =
+            const stage =
               t.state === 'pending' ? (
                 <Chip tone="orange">대기</Chip>
               ) : (
@@ -263,6 +263,13 @@ function DecisionIssueCard({
                   <Chip tone={p === 'done' ? 'green' : p === 'applied' ? 'ai' : 'blue'}>{PROGRESS_LABEL[p]}</Chip>
                 </>
               );
+            // 완료된 이슈면 [완료] 칩을 한 개 더 붙여요 (같은 32px 칩)
+            const status = (
+              <>
+                {stage}
+                {change.issueStatus === '완료' && <Chip tone="green">완료</Chip>}
+              </>
+            );
             // 숨겨 둔 모양: 작업 이름 옆에 붙는 작은 칩 하나(대기 / 확인 완료 / 작업 반영). SHOW_CHIP_POSITION_SWITCH 를 true 로 하면 다시 비교할 수 있어요.
             const small =
               t.state === 'pending' ? (
