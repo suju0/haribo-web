@@ -76,7 +76,7 @@ function rulePayment(viewer: CliViewer): DecisionChange {
     summary: '지속되는 제약 조건으로 새로 정해져서, 이후 모든 작업에서 지켜야 해요.',
     before: null,
     after: '결제 금액은 서버에서만 계산한다',
-    reason: '지속되는 제약 조건으로 저장돼서, 담당자가 작업을 시작할 때마다 작업 맥락에 함께 들어가요.',
+    reason: STANDALONE ? '항상 적용되는 결정 사항으로 등록되어, 담당자가 작업을 시작할 때마다 작업 맥락에 함께 들어가요.' : '지속되는 제약 조건으로 저장돼서, 담당자가 작업을 시작할 때마다 작업 맥락에 함께 들어가요.',
     importance: 'HIGH',
     decisionState: '신규',
     affectsMe: true,
