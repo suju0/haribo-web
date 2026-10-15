@@ -60,6 +60,9 @@ const CHIP_ROW_H = 24;
  *  숨기는 동안에는 내 작업만 "이슈 카드" 안에 보여요. */
 const SHOW_TASK_TABLE = false;
 
+/** 내 답변 카드의 수정(연필) 버튼. 숨겼어요. 다시 쓰려면 true. (대체 버전) */
+const SHOW_EDIT_ANSWER = false;
+
 /** 이슈 카드 줄 앞의 작업 코드(T-37 등). 숨겼어요. 다시 쓰려면 true. (대체 버전) */
 const SHOW_TASK_CODE = false;
 
@@ -289,23 +292,11 @@ function DecisionIssueCard({
                   n === myTasks.length - 1,
                   chipPos === 'right' ? status : undefined,
                   undefined,
-                  // 이슈 제목 아래: 작성자 · 시각, 그 아래 바뀐 이유 (글자 크기 · 색은 원래 줄 그대로)
+                  // 이슈 제목 아래: 작성자 · 시각 (글자 크기 · 색은 원래 줄 그대로). 바뀐 이유는 카드 밖, 결정 사항 제목 아래로 옮겼어요.
                   metaLine ? (
-                    <>
-                      <Paragraph.Text typography="t7" color={adaptive.grey600}>
-                        {metaLine}
-                      </Paragraph.Text>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 4 }}>
-                        <div style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
-                          <Paragraph.Text typography="t7" color={adaptive.grey500}>
-                            바뀐 이유
-                          </Paragraph.Text>
-                        </div>
-                        <Paragraph.Text typography="t7" color={adaptive.grey800}>
-                          {change.reason}
-                        </Paragraph.Text>
-                      </div>
-                    </>
+                    <Paragraph.Text typography="t7" color={adaptive.grey600}>
+                      {metaLine}
+                    </Paragraph.Text>
                   ) : undefined
                 )}
               </React.Fragment>
@@ -448,7 +439,8 @@ function RelationFlow({
           </Paragraph.Text>
           {/* 오른쪽: 수정 · 다음 변경 › 를 나란히. 글자 크기는 둘 다 13px, 색은 각자 그대로(수정 파랑 / 다음 변경 진한 회색) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            {/* 글자 "수정" 대신 연필 아이콘(파랑 20px). 스크린 리더에는 "답변 수정"으로 읽혀요. */}
+            {/* 글자 "수정" 대신 연필 아이콘(파랑 20px). 스크린 리더에는 "답변 수정"으로 읽혀요. 대체 버전은 SHOW_EDIT_ANSWER 가 true 일 때만 보여요. */}
+            {(!STANDALONE || SHOW_EDIT_ANSWER) && (
             <button
               type="button"
               aria-label="답변 수정"
@@ -457,12 +449,27 @@ function RelationFlow({
             >
               <IconEdit />
             </button>
+            )}
             {onNext && (
               <>
-                <span aria-hidden style={{ color: adaptive.grey400, fontSize: 13 }}>·</span>
-                <TextButton size="medium" variant="arrow" onClick={onNext}>
-                  <span style={{ fontSize: 13, fontWeight: 400, color: adaptive.grey900 }}>다음 변경</span>
-                </TextButton>
+                {(!STANDALONE || SHOW_EDIT_ANSWER) && <span aria-hidden style={{ color: adaptive.grey400, fontSize: 13 }}>·</span>}
+                {STANDALONE ? (
+                  // 대체 버전: > 표시를 작게(12px), 글자(13px · 굵기 400)와 같은 얇은 굵기로
+                  <button
+                    type="button"
+                    onClick={onNext}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 2, border: 0, background: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', color: adaptive.grey900 }}
+                  >
+                    <span style={{ fontSize: 13, fontWeight: 400, lineHeight: '19.5px' }}>다음 변경</span>
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden style={{ flexShrink: 0 }}>
+                      <path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                ) : (
+                  <TextButton size="medium" variant="arrow" onClick={onNext}>
+                    <span style={{ fontSize: 13, fontWeight: 400, color: adaptive.grey900 }}>다음 변경</span>
+                  </TextButton>
+                )}
               </>
             )}
           </div>
@@ -483,7 +490,7 @@ function RelationFlow({
             // 선택된 버튼은 기존 파랑(fill) 그대로, 선택 안 된 버튼은 기존 light weak에 배경만 아주 살짝 진하게예요.
             color={relation === v ? 'primary' : 'light'}
             variant={relation === v ? 'fill' : 'weak'}
-            style={relation === v ? FILL_CTA_STYLE : LIGHT_CTA_STYLE}
+            style={relation === v ? FILL_CTA_STYLE : STANDALONE ? LIGHT_BLUE_CTA_STYLE : LIGHT_CTA_STYLE}
             onClick={() => setRelation(v)}
           >
             {v}
@@ -503,7 +510,7 @@ function RelationFlow({
                 // 답을 고치는 중이면 지금 답이 파랑으로 보여요
                 color={editing && answered?.awareness === v && answered.relation === '관계있다' ? 'primary' : 'light'}
                 variant={editing && answered?.awareness === v && answered.relation === '관계있다' ? 'fill' : 'weak'}
-                style={editing && answered?.awareness === v && answered.relation === '관계있다' ? FILL_CTA_STYLE : LIGHT_CTA_STYLE}
+                style={editing && answered?.awareness === v && answered.relation === '관계있다' ? FILL_CTA_STYLE : STANDALONE ? LIGHT_BLUE_CTA_STYLE : LIGHT_CTA_STYLE}
                 onClick={() => submit({ relation: '관계있다', awareness: v })}
               >
                 {v}
@@ -772,6 +779,12 @@ const CTA_FONT_SIZE = '15px';
 const LIGHT_CTA_STYLE = {
   '--button-background-color': 'rgba(222, 222, 255, 0.30)',
   '--button-color': '#FFFFFF',
+  '--button-font-size': CTA_FONT_SIZE,
+} as React.CSSProperties;
+// 대체 버전: 누르기 전 버튼은 "현재 결정 사항" 카드 배경과 같은 연한 파랑(blue50), 글자는 파랑이에요.
+const LIGHT_BLUE_CTA_STYLE = {
+  '--button-background-color': adaptive.blue50,
+  '--button-color': '#1F72EA',
   '--button-font-size': CTA_FONT_SIZE,
 } as React.CSSProperties;
 const FILL_CTA_STYLE = { '--button-font-size': CTA_FONT_SIZE } as React.CSSProperties;
@@ -1043,6 +1056,19 @@ export function Detail({
       )}
 
       {/* 누가 · 언제 · 근거 */}
+      {/* 대체 버전: 바뀐 이유는 이슈 카드 안이 아니라 결정 사항 제목 바로 아래에 붙어요 */}
+      {inCard && (
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 14 }}>
+          <div style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+            <Paragraph.Text typography="t7" color={adaptive.grey500}>
+              바뀐 이유
+            </Paragraph.Text>
+          </div>
+          <Paragraph.Text typography="t7" color={adaptive.grey800}>
+            {change.reason}
+          </Paragraph.Text>
+        </div>
+      )}
       {!inCard && (
       <div style={{ marginTop: 14 }}>
         <Paragraph.Text typography="t7" color={adaptive.grey600}>
