@@ -84,6 +84,13 @@ function CliSourceChips({ change }: { change: DecisionChange }) {
 /** 목록 줄의 "(완료된 이슈)" 문구. 이슈 카드의 [완료] 칩으로 대신해서 숨겼어요. 다시 쓰려면 true. (대체 버전) */
 const SHOW_DONE_ISSUE_TEXT = false;
 
+/** 대체 버전: 완료된 이슈의 [완료] 칩. 제목 옆 칩들 맨 끝에 붙어요 (변경 상세의 칩 순서와 같아요) */
+function DoneIssueChip({ change }: { change: DecisionChange }) {
+  const cli = useCli();
+  if (!STANDALONE || !cli || change.issueStatus !== '완료') return null;
+  return <Chip inline tone="green">완료</Chip>;
+}
+
 /** 이전 값이 없으면 "새 결정 사항", 이슈가 완료일 때만 "이슈 완료" */
 function CliTags({ change }: { change: DecisionChange }) {
   return (
@@ -95,7 +102,7 @@ function CliTags({ change }: { change: DecisionChange }) {
       )}
       {change.isNewVersion && change.version && <Chip inline tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
       {change.revertedTo && <Chip inline tone="purple">되돌림</Chip>}
-      {change.issueStatus === '완료' && <Chip inline tone="green">{STANDALONE ? '완료' : '이슈 완료'}</Chip>}
+      {!STANDALONE && change.issueStatus === '완료' && <Chip inline tone="green">이슈 완료</Chip>}
     </>
   );
 }
@@ -317,6 +324,7 @@ function PendingRow({ change, onOpen }: { change: DecisionChange; onOpen: (id: s
               <div style={{ display: STANDALONE ? 'flex' : 'contents', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
                 <VersionKind change={change} />
                 <AiChip change={change} />
+                <DoneIssueChip change={change} />
               </div>
             </div>
             <ChangeLine change={change} />
@@ -399,6 +407,7 @@ function DoneRow({
               <div style={{ display: STANDALONE ? 'flex' : 'contents', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
                 <VersionKind change={change} />
                 <AiChip change={change} />
+                <DoneIssueChip change={change} />
               </div>
               {cli && STANDALONE ? null : cli ? (
                 <Chip tone={superseded ? 'gray' : 'green'}>{superseded ? '대체됨' : '답함'}</Chip>
@@ -474,6 +483,7 @@ function ClosedRow({
               <div style={{ display: STANDALONE ? 'flex' : 'contents', alignItems: 'center', gap: 8, flexWrap: 'nowrap' }}>
                 <VersionKind change={change} />
                 <AiChip change={change} />
+                <DoneIssueChip change={change} />
               </div>
             </div>
             <ChangeLine change={change} muted />
