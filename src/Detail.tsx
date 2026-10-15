@@ -977,7 +977,7 @@ export function Detail({
                   <Chip inline tone="ai">코드</Chip>
                 ) : change.source === 'slack' ? (
                   <Chip inline tone="ai">슬랙</Chip>
-                ) : change.source === 'pr' ? (
+                ) : change.source === 'pr' || change.foundByAi ? (
                   <Chip inline tone="ai">PR에서 찾은 변경</Chip>
                 ) : (
                   <Chip inline tone="ai" icon={<IconSparkle />}>AI 대화</Chip>
@@ -989,7 +989,7 @@ export function Detail({
                   {STANDALONE ? 'AI 대화' : 'AI 대화에서 바꿈'}
                 </Chip>
               )}
-              {change.foundByAi && <Chip inline tone="gray">PR에서 찾음</Chip>}
+              {!STANDALONE && change.foundByAi && <Chip inline tone="gray">PR에서 찾음</Chip>}
               {change.issueStatus === '완료' && <Chip inline tone="green">{STANDALONE ? '완료된 이슈' : '이슈 완료'}</Chip>}
             </>
           ) : (
