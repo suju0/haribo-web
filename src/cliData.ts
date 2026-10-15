@@ -89,7 +89,7 @@ function rulePayment(viewer: CliViewer): DecisionChange {
     ],
     relatedFiles: [],
     relatedCode: [],
-    recommendedAction: '내 작업이 이 제약 조건에 영향을 받는지 답해주세요.',
+    recommendedAction: STANDALONE ? '내 이슈가 이 결정 사항에 영향을 받는지 답해주세요.' : '내 작업이 이 제약 조건에 영향을 받는지 답해주세요.',
     rollbackAvailable: false,
     changedAt: '2026.10.06',
     responses: [],
