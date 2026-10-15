@@ -656,7 +656,7 @@ export function Inbox({
             나에게 온 변경 목록
           </Paragraph.Text>
           <Paragraph.Text typography="t7" color={adaptive.grey600}>
-            최근 7일 동안 바뀐 결정 사항과 영향받는 작업이에요.
+            {STANDALONE ? '답한 변경은 7일 뒤에 목록에서 내려가요' : '최근 7일 동안 바뀐 결정 사항과 영향받는 작업이에요.'}
           </Paragraph.Text>
         </div>
         <FilterTabs
