@@ -1092,7 +1092,7 @@ export function Detail({
           </Paragraph.Text>
           <div style={{ marginTop: 4 }}>
             <Paragraph.Text typography="t7" color={adaptive.grey600}>
-              답하기 전에 결정이 또 바뀌었어요. 이 변경에는 답하지 않아도 되고, 새 버전을 확인해주세요.
+              {STANDALONE ? '최신 버전의 확인할 변경에 답해 주세요.' : '답하기 전에 결정이 또 바뀌었어요. 이 변경에는 답하지 않아도 되고, 새 버전을 확인해주세요.'}
             </Paragraph.Text>
           </div>
         </div>
