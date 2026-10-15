@@ -70,7 +70,10 @@ const displayKey = (key: string) => (STANDALONE ? key.toLowerCase().replace(/-/g
 const SHOW_ANSWER_NEEDED_BUTTON = false;
 
 /** "확정된 결과" 카드 옆 [되돌림] 칩. 제목 옆 칩과 겹쳐서 일단 숨겼어요. 다시 쓰려면 true. (대체 버전) */
-const SHOW_REVERTED_TAG_IN_RESULT = false;
+const SHOW_REVERTED_TAG_IN_RESULT = true;
+
+/** 결정 사항 제목 옆의 [되돌림] 칩. 카드 쪽 칩과 겹쳐서 숨겼어요. 다시 쓰려면 true. (대체 버전 · 변경 상세) */
+const SHOW_REVERTED_TAG_IN_TITLE = false;
 
 /** 이슈 카드 안 상태 칩 위치(오른쪽 / 제목 옆) 비교 스위치. 정하고 나면 false 로 바꿔서 숨겨요. (대체 버전 전용) */
 const SHOW_CHIP_POSITION_SWITCH = false;
@@ -947,7 +950,7 @@ export function Detail({
                   {STANDALONE ? '신규' : '새 결정 사항'}
                 </Chip>
               )}
-              {change.revertedTo && <Chip inline tone="purple">되돌림</Chip>}
+              {change.revertedTo && (!STANDALONE || SHOW_REVERTED_TAG_IN_TITLE) && <Chip inline tone="purple">되돌림</Chip>}
               {change.isNewVersion && change.version && <Chip inline tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
               {STANDALONE ? (
                 // 출처 칩 (대체 버전): [AI 대화] [코드] [슬랙]. 모두 같은 모양이에요.
@@ -1095,7 +1098,7 @@ export function Detail({
         ) : (
           <>
             <ValueBox label={STANDALONE ? '이전 결정 사항' : '변경 전'} value={change.before ?? '이전 값이 없어요 · 새로 생긴 결정이에요'} />
-            <ValueBox label={STANDALONE ? '확정된 결과' : '변경 후'} value={change.after} after tag={SHOW_REVERTED_TAG_IN_RESULT && change.revertedTo ? <Chip inline tone="purple">되돌림</Chip> : undefined} />
+            <ValueBox label={STANDALONE ? '현재 결정 사항' : '변경 후'} value={change.after} after tag={SHOW_REVERTED_TAG_IN_RESULT && change.revertedTo ? <Chip inline tone="purple">되돌림</Chip> : undefined} />
           </>
         )}
       </div>
