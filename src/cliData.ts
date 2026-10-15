@@ -237,7 +237,7 @@ function reviseScenarios(): DecisionChange[] {
     taskNo: 'T-33',
     taskTitle: '환불 API',
     taskAction: '환불 가능 기간 검증을 수정해야 해요',
-    reason: '환불 기간이 14일이면 구매 직후에 쓰고 되돌리는 사례가 많아서, 민호가 CLI 대화에서 7일로 줄이기로 하고 결정(v2)으로 저장했어요.',
+    reason: '민호가 CLI 대화에서 환불 가능 기간을 14일에서 7일로 줄이기로 하고 결정(v2)으로 저장했어요.',
   };
   const refundNew: ReviseSpec = {
     ...refundOld,
@@ -249,7 +249,7 @@ function reviseScenarios(): DecisionChange[] {
     to: 3,
     before: '환불 가능 기간 7일 (v2)',
     after: '환불 가능 기간 3일 (v3)',
-    reason: '7일로 줄인 뒤에도 구매 6일째에 몰려드는 대량 환불이 확인돼서, 환불 가능 기간을 3일로 더 줄이기로 했어요. 환불 API의 기간 검증을 3일 기준으로 바꿔야 해요.',
+    reason: '환불 가능 기간을 7일에서 3일로 더 줄이기로 했어요. 환불 API의 기간 검증을 3일 기준으로 바꿔야 해요.',
   };
 
   // 확정안 3: 이미 답함 + 값이 다르게 바뀜 → 새로 알려요. (이전에 "관계있다"로 답했으면 안내를 붙여요)
@@ -268,7 +268,7 @@ function reviseScenarios(): DecisionChange[] {
     taskNo: 'T-35',
     taskTitle: '주문 금액 계산 API',
     taskAction: '배송비 계산 값을 수정해야 해요',
-    reason: '택배사 단가가 올라서 기본 배송비를 2,500원에서 3,000원으로 올리기로 하고 결정(v2)으로 저장했어요.',
+    reason: '기본 배송비를 2,500원에서 3,000원으로 올리기로 하고 결정(v2)으로 저장했어요.',
   };
   const shipNew: ReviseSpec = {
     ...shipOld,
@@ -281,7 +281,7 @@ function reviseScenarios(): DecisionChange[] {
     to: 3,
     before: '배송비 3,000원 (v2)',
     after: '배송비 3,500원 (v3)',
-    reason: '도서산간 지역의 추가 운임까지 반영하려고 기본 배송비를 3,500원으로 한 번 더 올렸어요. 주문 금액 계산 API가 쓰는 배송비 값을 3,500원으로 바꿔야 해요.',
+    reason: '기본 배송비를 3,000원에서 3,500원으로 한 번 더 올리기로 했어요. 주문 금액 계산 API가 쓰는 배송비 값을 3,500원으로 바꿔야 해요.',
   };
 
   // 확정안 4: 이미 답함 + 원래 값으로 되돌림 → 새로 알리고 "되돌림" 표시
@@ -300,7 +300,7 @@ function reviseScenarios(): DecisionChange[] {
     taskNo: 'T-37',
     taskTitle: '쿠폰 적용 API',
     taskAction: '중복 쿠폰 적용 로직을 수정해야 해요',
-    reason: '고객 문의가 많아서 쿠폰을 여러 장 함께 쓸 수 있게 하기로 하고 결정(v2)으로 저장했어요.',
+    reason: '쿠폰을 여러 장 함께 쓸 수 있게 하기로 하고 결정(v2)으로 저장했어요.',
   };
   const couponNew: ReviseSpec = {
     ...couponOld,
@@ -313,7 +313,7 @@ function reviseScenarios(): DecisionChange[] {
     to: 3,
     before: '쿠폰 중복 사용 허용 (v2)',
     after: '쿠폰 중복 사용 불가 (v1)',
-    reason: '쿠폰을 겹쳐 쓰면 할인 금액이 결제 금액보다 커지는 주문이 생겨서, 중복 사용 불가(v1) 기준으로 되돌렸어요. 쿠폰 적용 API에서 중복 쿠폰을 허용하던 로직을 걷어내야 해요.',
+    reason: '중복 사용 불가(v1) 기준으로 되돌렸어요. 쿠폰 적용 API에서 중복 쿠폰을 허용하던 로직을 걷어내야 해요.',
   };
 
   return [
