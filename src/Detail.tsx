@@ -146,7 +146,7 @@ function SectionTitle({
 }
 
 /** 변경 전 / 변경 후 박스 */
-function ValueBox({ label, value, after, tag }: { label: string; value: string; after?: boolean; tag?: React.ReactNode }) {
+function ValueBox({ label, value, after, tag, faded }: { label: string; value: string; after?: boolean; tag?: React.ReactNode; /** 대체 버전: 이전 결정 사항은 아주 연한 회색으로 흐리게 */ faded?: boolean }) {
   return (
     <div
       style={{
@@ -162,19 +162,19 @@ function ValueBox({ label, value, after, tag }: { label: string; value: string; 
     >
       {tag ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: CHIP_ROW_H }}>
-          <Paragraph.Text typography="st12" color={after ? adaptive.blue700 : adaptive.grey600}>
+          <Paragraph.Text typography="st12" color={after ? adaptive.blue700 : faded ? adaptive.grey400 : adaptive.grey600}>
             {label}
           </Paragraph.Text>
           {tag}
         </div>
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', height: STANDALONE ? CHIP_ROW_H : undefined }}>
-          <Paragraph.Text typography="st12" color={after ? adaptive.blue700 : adaptive.grey600}>
+          <Paragraph.Text typography="st12" color={after ? adaptive.blue700 : faded ? adaptive.grey400 : adaptive.grey600}>
             {label}
           </Paragraph.Text>
         </div>
       )}
-      <Paragraph.Text typography="st11" fontWeight="medium" color={adaptive.grey900}>
+      <Paragraph.Text typography="st11" fontWeight="medium" color={faded ? adaptive.grey400 : adaptive.grey900}>
         {value}
       </Paragraph.Text>
     </div>
@@ -1142,7 +1142,7 @@ export function Detail({
           <NewDecisionCard value={change.after} />
         ) : (
           <>
-            <ValueBox label={STANDALONE ? '이전 결정 사항' : '변경 전'} value={change.before ?? '이전 값이 없어요 · 새로 생긴 결정이에요'} />
+            <ValueBox faded={STANDALONE} label={STANDALONE ? '이전 결정 사항' : '변경 전'} value={change.before ?? '이전 값이 없어요 · 새로 생긴 결정이에요'} />
             <ValueBox label={STANDALONE ? '현재 결정 사항' : '변경 후'} value={change.after} after tag={SHOW_REVERTED_TAG_IN_RESULT && change.revertedTo ? <Chip inline tone="purple">되돌림</Chip> : undefined} />
           </>
         )}
