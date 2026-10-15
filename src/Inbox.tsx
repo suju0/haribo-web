@@ -63,7 +63,7 @@ function CliSourceChips({ change }: { change: DecisionChange }) {
         change.source === 'code' ? (
           <Chip inline tone="ai">코드</Chip>
         ) : change.source === 'slack' ? (
-          <Chip inline tone="ai">슬랙</Chip>
+          <Chip inline tone="ai">Slack</Chip>
         ) : change.source === 'pr' || change.foundByAi ? (
           <Chip inline tone="ai">PR에서 찾은 변경</Chip>
         ) : (
