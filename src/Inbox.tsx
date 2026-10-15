@@ -61,7 +61,7 @@ function CliSourceChips({ change }: { change: DecisionChange }) {
         <Chip inline tone="gray">코드에서 바꿈</Chip>
       ) : (
         <Chip inline tone="ai" icon={<IconSparkle />}>
-          AI 대화에서 바꿈
+          {STANDALONE ? 'AI 대화' : 'AI 대화에서 바꿈'}
         </Chip>
       )}
       {change.foundByAi && <Chip inline tone="gray">PR에서 찾음</Chip>}
