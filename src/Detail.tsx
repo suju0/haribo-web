@@ -933,7 +933,7 @@ export function Detail({
               )}
               {fresh && (
                 <Chip inline tone={STANDALONE ? 'blue' : 'blueFill'}>
-                  새 결정 사항
+                  {STANDALONE ? '신규' : '새 결정 사항'}
                 </Chip>
               )}
               {change.revertedTo && <Chip inline tone="purple">되돌림</Chip>}

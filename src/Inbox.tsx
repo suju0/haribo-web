@@ -75,7 +75,7 @@ function CliTags({ change }: { change: DecisionChange }) {
     <>
       {isNewDecision(change) && (
         <Chip inline tone={STANDALONE ? 'blue' : 'blueFill'}>
-          새 결정 사항
+          {STANDALONE ? '신규' : '새 결정 사항'}
         </Chip>
       )}
       {change.isNewVersion && change.version && <Chip inline tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
