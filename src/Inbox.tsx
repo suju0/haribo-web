@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
-import { ANSWERED, AUTO_CLOSED_TITLE, REAPPLY_HINT, STANDALONE, TO_ANSWER } from './copy';
+import { ANSWERED, AUTO_CLOSED_TITLE, REAPPLY_HINT, STANDALONE, TELL_YOU, TO_ANSWER } from './copy';
 import { NotificationAccordion } from './NotificationAccordion';
 import {
   DecisionChange,
@@ -281,7 +281,7 @@ function CliEmptyCards() {
   );
   return (
     <>
-      {card(adaptive.blue100, TO_ANSWER, `아직 ${TO_ANSWER}이 없어요`, '새로운 변경이 감지되면 이곳에서 알려드릴게요')}
+      {card(adaptive.blue100, TO_ANSWER, `아직 ${TO_ANSWER}이 없어요`, `새로운 변경이 감지되면 이곳에서 ${TELL_YOU}`)}
       {card(adaptive.grey200, ANSWERED, `아직 ${ANSWERED}이 없어요`, '변경에 답하면 이곳에 모여요')}
     </>
   );
@@ -716,7 +716,7 @@ export function Inbox({
         <div style={{ padding: '64px 0' }}>
           <Result
             title="확인할 변경이 없어요"
-            description={q ? '제목이나 이슈 번호(예: #12)를 다시 확인해주세요.' : '새로운 변경이 감지되면 알려드릴게요.'}
+            description={q ? '제목이나 이슈 번호(예: #12)를 다시 확인해주세요.' : `새로운 변경이 감지되면 ${TELL_YOU}.`}
           />
         </div>
       ) : STANDALONE && cli && filter === 'issue' ? (
@@ -740,7 +740,7 @@ export function Inbox({
               {pendingItems.length === 0 && (
                 // 답할 변경이 0개면 빈 화면을 보여줘요
                 <div style={{ padding: '8px 0 32px' }}>
-                  <Result title={`지금 ${TO_ANSWER}이 없어요`} description="새로운 변경이 감지되면 이곳에서 알려드릴게요." />
+                  <Result title={`지금 ${TO_ANSWER}이 없어요`} description={`새로운 변경이 감지되면 이곳에서 ${TELL_YOU}.`} />
                 </div>
               )}
               {pendingItems.map((c) => (

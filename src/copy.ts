@@ -25,3 +25,6 @@ export const ANSWER_COLOR = '#F76707';
 
 /** 변경 상세: 아직 답하지 않은 변경 제목 아래에 띄우는 강조 문구 */
 export const ANSWER_NEEDED = '내 답이 필요한 변경이에요. 아래에서 답해주세요';
+
+/** "알려드릴게요" (대체 버전은 띄어 써요) */
+export const TELL_YOU = STANDALONE ? '알려 드릴게요' : '알려드릴게요';
