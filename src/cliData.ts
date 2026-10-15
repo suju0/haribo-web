@@ -209,7 +209,7 @@ function revise(sp: ReviseSpec, patch: Partial<DecisionChange> = {}, taskState: 
     affectedAgents: [{ name: 'order-api CLI', upToDate: false }],
     relatedFiles: [],
     relatedCode: [],
-    recommendedAction: '내 작업이 바뀐 값에 영향을 받는지 답해주세요.',
+    recommendedAction: '내 이슈가 바뀐 결정 사항에 영향을 받는지 답해주세요',
     rollbackAvailable: false,
     changedAt: '2026.10.11',
     responses: [],
