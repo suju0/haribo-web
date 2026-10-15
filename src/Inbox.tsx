@@ -95,7 +95,7 @@ function CliTags({ change }: { change: DecisionChange }) {
       )}
       {change.isNewVersion && change.version && <Chip inline tone="blue">{`새 버전 v${change.version.to}`}</Chip>}
       {change.revertedTo && <Chip inline tone="purple">되돌림</Chip>}
-      {!STANDALONE && change.issueStatus === '완료' && <Chip inline tone="green">이슈 완료</Chip>}
+      {change.issueStatus === '완료' && <Chip inline tone="green">{STANDALONE ? '완료' : '이슈 완료'}</Chip>}
     </>
   );
 }
