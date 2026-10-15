@@ -1088,7 +1088,7 @@ export function Detail({
       {closed && (
         <div style={{ background: adaptive.grey50, borderRadius: 10, padding: '18px 20px', marginTop: 20 }}>
           <Paragraph.Text typography="t6" fontWeight="bold" color={adaptive.grey800}>
-            {change.supersededBy ? (change.supersededBy.version ? `새 버전(v${change.supersededBy.version})으로 대체됐어요` : `새 버전(#${byIssueNo})으로 대체됐어요`) :`새 버전(#${byIssueNo})으로 대체되어 자동으로 닫혔어요`}
+            {STANDALONE && change.supersededBy ? '확인할 변경이 새 버전으로 대체되었어요' : change.supersededBy ? (change.supersededBy.version ? `새 버전(v${change.supersededBy.version})으로 대체됐어요` : `새 버전(#${byIssueNo})으로 대체됐어요`) :`새 버전(#${byIssueNo})으로 대체되어 자동으로 닫혔어요`}
           </Paragraph.Text>
           <div style={{ marginTop: 4 }}>
             <Paragraph.Text typography="t7" color={adaptive.grey600}>
