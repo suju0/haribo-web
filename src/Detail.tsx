@@ -631,8 +631,7 @@ function PeerBar({
           const pending = g.some((p) => isPending(p));
           // 칩을 누르면 지금 확인할 버전(없으면 최신 버전)을 열어요.
           const target = g.find((p) => isPending(p)) ?? head;
-          return (
-            <Tooltip key={head.issueNo} size="small" placement="bottom" openOnHover message={`${head.title} · ${reviewStatus(head)}`}>
+          const chip = (
               <button
                 type="button"
                 role="tab"
@@ -669,6 +668,13 @@ function PeerBar({
                   />
                 )}
               </button>
+          );
+          // 지금 보고 있는(눌러진) 이슈 칩에는 제목 hover 를 달지 않고, 선택되지 않은 칩에만 달아요.
+          return selected ? (
+            <React.Fragment key={head.issueNo}>{chip}</React.Fragment>
+          ) : (
+            <Tooltip key={head.issueNo} size="small" placement="bottom" openOnHover message={`${head.title} · ${reviewStatus(head)}`}>
+              {chip}
             </Tooltip>
           );
         })}
