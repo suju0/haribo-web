@@ -161,7 +161,7 @@ const answered = (relation: Answer['relation'], awareness: Answer['awareness'], 
 
 interface ReviseSpec {
   /** 어디서 바꿨는지 (없으면 AI 대화) */
-  source?: 'ai-chat' | 'code' | 'slack';
+  source?: 'ai-chat' | 'code' | 'slack' | 'pr';
   id: string;
   no: number;
   iso: string;
@@ -225,6 +225,7 @@ function reviseScenarios(): DecisionChange[] {
   // 확정안 1: 답 안 함 + 값이 또 바뀜 → 이전 건은 "대체됨"(흐리게), 최신 1건만 새로 알려요.
   const refundOld: ReviseSpec = {
     id: 'CLI-SPEC-REFUND-WINDOW-V2',
+    source: STANDALONE ? 'pr' : undefined,
     no: 3,
     iso: '2026-10-10T14:20:00',
     title: '환불 가능 기간은 7일로 한다',

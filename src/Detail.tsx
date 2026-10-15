@@ -977,6 +977,8 @@ export function Detail({
                   <Chip inline tone="ai">코드</Chip>
                 ) : change.source === 'slack' ? (
                   <Chip inline tone="ai">슬랙</Chip>
+                ) : change.source === 'pr' ? (
+                  <Chip inline tone="ai">PR에서 찾은 변경</Chip>
                 ) : (
                   <Chip inline tone="ai" icon={<IconSparkle />}>AI 대화</Chip>
                 )
