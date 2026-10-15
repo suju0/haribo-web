@@ -18,7 +18,7 @@ export const AUTO_CLOSED_TITLE = STANDALONE ? '기존 자동 닫힘' : '자동�
 export const REAPPLY_HINT = STANDALONE ? '이전 결정 사항으로 작업 중이었다면 최신 결정 사항을 반영해 주세요' : '이미 반영했다면 다시 작업해 주세요';
 
 /** 상세를 보는 중에 원래 값으로 돌아와서 자동으로 닫혔을 때 띄우는 한 줄 */
-export const AUTO_CLOSED_NOTICE = '원래대로 돌아와서 답하지 않아도 돼요';
+export const AUTO_CLOSED_NOTICE = STANDALONE ? '변경이 되돌려졌어요. 답해주지 않아도 돼요.' : '원래대로 돌아와서 답하지 않아도 돼요';
 
 /** 답해야 하는 변경을 강조하는 주황(시안 1) */
 export const ANSWER_COLOR = '#F76707';

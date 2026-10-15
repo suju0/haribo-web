@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Answer, DecisionChange, PROGRESS_LABEL, TaskProgress, isPending, sortChanges } from './data';
+import { STANDALONE } from './copy';
 
 /**
  * 변경 목록 + 선택한 변경 + 답하기 동작을 한 묶음("보드")으로 관리해요.
@@ -78,7 +79,7 @@ export function useBoard(
       responses: [...selected.responses, { kind: 'ack', text: summary, at: '방금' }],
       ...extra,
     });
-    toast(editing ? '답을 바꿨어요.' : '답했어요. 확인할 변경 상태가 답함으로 바뀌었어요.');
+    toast(editing ? '답을 바꿨어요.' : STANDALONE ? '답변을 완료했어요.' : '답했어요. 확인할 변경 상태가 답함으로 바뀌었어요.');
   };
 
   /** 대체 버전: 내 작업(역할)의 진행 상태를 바꿔요 (확인 완료 → 작업 반영 → 처리 완료) */
