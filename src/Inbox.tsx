@@ -668,7 +668,7 @@ export function Inbox({
             STANDALONE && cli
               ? [
                   { value: 'all', label: '전체' },
-                  { value: 'issue', label: '이슈 별로 보기' },
+                  { value: 'issue', label: '이슈별로 보기' },
                 ]
               : [
                   { value: 'all', label: '전체' },
