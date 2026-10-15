@@ -708,11 +708,14 @@ function PeerBar({
  * 현재 상태 (간결형). 단계 설명은 현재 단계 이름 바로 아래에 서브 타이틀처럼 붙여서 보여줘요.
  * 단계 이름의 실제 위치를 재서 그 아래 가운데에 맞추고, 양 끝 단계에서는 화면 밖으로 나가지 않게 안쪽으로 밀어요.
  */
+/** 현재 상태 단계 이름. 대체 버전은 첫 단계를 "결정 사항 변경"으로 보여줘요. */
+const stepLabel = (st: Status) => (STANDALONE && st === 'NEW' ? '결정 사항 변경' : STATUS_LABEL[st]);
+
 function StatusProgress({ flow, currentIdx, description }: { flow: Status[]; currentIdx: number; description: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const descRef = useRef<HTMLSpanElement>(null);
   const [left, setLeft] = useState<number | null>(null);
-  const label = STATUS_LABEL[flow[currentIdx]];
+  const label = stepLabel(flow[currentIdx]);
 
   useLayoutEffect(() => {
     const measure = () => {
@@ -722,7 +725,7 @@ function StatusProgress({ flow, currentIdx, description }: { flow: Status[]; cur
       // 단계 이름 글자 굵기: TDS 기본(현재 700 / 나머지 600)보다 두 단계 얇게 (현재 500 / 나머지 400)
       flow.forEach((st) => {
         const el = [...wrap.querySelectorAll('*')].find(
-          (e) => e.children.length === 0 && e.textContent?.trim() === STATUS_LABEL[st]
+          (e) => e.children.length === 0 && e.textContent?.trim() === stepLabel(st)
         ) as HTMLElement | undefined;
         if (el) el.style.fontWeight = st === flow[currentIdx] ? '500' : '400';
       });
@@ -744,7 +747,7 @@ function StatusProgress({ flow, currentIdx, description }: { flow: Status[]; cur
     <div ref={wrapRef}>
       <ProgressStepper variant="compact" paddingTop="wide" activeStepIndex={currentIdx}>
         {flow.map((st) => (
-          <ProgressStep key={st} title={STATUS_LABEL[st]} />
+          <ProgressStep key={st} title={stepLabel(st)} />
         ))}
       </ProgressStepper>
       <div style={{ position: 'relative', height: 20, marginTop: 6 }}>
