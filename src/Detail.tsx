@@ -135,7 +135,7 @@ function SectionTitle({
     return (
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, margin: `32px 0 ${bottom}px` }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: TITLE_SUBTITLE_GAP, flex: 1, minWidth: 0 }}>{text}</div>
-        <div style={{ flexShrink: 0 }}>{right}</div>
+        <div style={{ flexShrink: 1, minWidth: 0, maxWidth: '62%' }}>{right}</div>
       </div>
     );
   }
@@ -808,18 +808,21 @@ function taskCheckState(t: AffectedTask, viewerRole?: string): TaskCheckState {
 }
 
 /** "지금 해야 할 일" 제목 오른쪽에 붙는 안내: 이전에 "관계있다"로 답했던 변경이 다시 바뀌었을 때 (연한 주황 박스 + 주의 아이콘) */
-function ReapplyNotice() {
+/** [대체됨] 변경에 뜨는 안내 */
+const SUPERSEDED_NOTICE = '확인할 변경이 새 버전으로 대체되었어요. 최신 버전의 확인할 변경에 답해 주세요.';
+
+function ReapplyNotice({ text = REAPPLY_HINT }: { text?: string }) {
   return (
     <div
       role="note"
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 10, background: '#FFF4C2', color: '#000000' }}
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 10, background: '#FFF4C2', color: '#000000', textAlign: 'left' }}
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
         <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
         <path d="M12 7.5v5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         <circle cx="12" cy="16.5" r="1.2" fill="currentColor" />
       </svg>
-      <span style={{ fontSize: 13, fontWeight: 500, lineHeight: '19.5px' }}>{REAPPLY_HINT}</span>
+      <span style={{ fontSize: 13, fontWeight: 500, lineHeight: '19.5px' }}>{text}</span>
     </div>
   );
 }
@@ -1085,7 +1088,8 @@ export function Detail({
       )}
 
       {/* 안내 박스: 자동 닫힘 / AI 출처 */}
-      {closed && (
+      {/* 대체 버전: 대체된 변경 안내는 이 박스 대신 "지금 해야 할 일" 옆 주의 문구 카드로 보여줘요 */}
+      {closed && !(STANDALONE && change.supersededBy) && (
         <div style={{ background: adaptive.grey50, borderRadius: 10, padding: '18px 20px', marginTop: 20 }}>
           <Paragraph.Text typography="t6" fontWeight="bold" color={adaptive.grey800}>
             {STANDALONE && change.supersededBy ? '확인할 변경이 새 버전으로 대체되었어요' : change.supersededBy ? (change.supersededBy.version ? `새 버전(v${change.supersededBy.version})으로 대체됐어요` : `새 버전(#${byIssueNo})으로 대체됐어요`) :`새 버전(#${byIssueNo})으로 대체되어 자동으로 닫혔어요`}
@@ -1304,7 +1308,15 @@ export function Detail({
         <SectionTitle
           description={change.recommendedAction}
           bottom={0}
-          right={STANDALONE && needsReapplyHint(change) && !change.answer ? <ReapplyNotice /> : undefined}
+          right={
+            STANDALONE && reviewStatus(change) === '대체됨' && change.supersededBy ? (
+              // [대체됨] 칩이 붙는 경우에만
+              <ReapplyNotice text={SUPERSEDED_NOTICE} />
+            ) : STANDALONE && needsReapplyHint(change) && !change.answer ? (
+              // 이미 답했던 변경이 [되돌림] / [새 버전]으로 바뀐 경우
+              <ReapplyNotice />
+            ) : undefined
+          }
         >
           지금 해야 할 일
         </SectionTitle>
