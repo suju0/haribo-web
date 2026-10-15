@@ -1094,7 +1094,7 @@ export function Detail({
           <NewDecisionCard value={change.after} />
         ) : (
           <>
-            <ValueBox label="변경 전" value={change.before ?? '이전 값이 없어요 · 새로 생긴 결정이에요'} />
+            <ValueBox label={STANDALONE ? '이전 결정 사항' : '변경 전'} value={change.before ?? '이전 값이 없어요 · 새로 생긴 결정이에요'} />
             <ValueBox label={STANDALONE ? '확정된 결과' : '변경 후'} value={change.after} after tag={SHOW_REVERTED_TAG_IN_RESULT && change.revertedTo ? <Chip inline tone="purple">되돌림</Chip> : undefined} />
           </>
         )}
