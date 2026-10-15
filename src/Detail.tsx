@@ -479,7 +479,7 @@ function RelationFlow({
 
       {relation === '관계있다' && (
         <>
-          {question('이 변경을 미리 알고 있었나요?')}
+          {question(STANDALONE ? '이 변경을 이미 알고 있었나요?' : '이 변경을 미리 알고 있었나요?')}
           <div style={{ display: 'flex', gap: 8 }}>
             {(['알았다', '몰랐다'] as const).map((v) => (
               <Button
