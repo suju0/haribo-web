@@ -60,6 +60,9 @@ const CHIP_ROW_H = 24;
  *  숨기는 동안에는 내 작업만 "이슈 카드" 안에 보여요. */
 const SHOW_TASK_TABLE = false;
 
+/** 제목 옆 [완료된 이슈] 칩. 이슈 카드의 [완료] 칩과 같은 역할이라 숨겼어요. 다시 쓰려면 true. (대체 버전) */
+const SHOW_DONE_ISSUE_CHIP = false;
+
 /** 내 답변 카드의 수정(연필) 버튼. 숨겼어요. 다시 쓰려면 true. (대체 버전) */
 const SHOW_EDIT_ANSWER = false;
 
@@ -315,7 +318,7 @@ function DecisionIssueCard({
           '이슈',
           '결정이 필요한 과제',
           change.issueTitle,
-          change.issueStatus === '완료' ? <Chip inline tone="green">{STANDALONE ? '완료된 이슈' : '이슈 완료'}</Chip> : undefined,
+          change.issueStatus === '완료' ? (STANDALONE ? <Chip tone="green">완료</Chip> : <Chip inline tone="green">이슈 완료</Chip>) : undefined,
           STANDALONE
         )}
       {/* 대체 버전: "결정 사항 | 확정된 결과" 줄은 없애고, 같은 내용을 아래 "확정된 결과" 카드가 보여줘요 */}
@@ -997,7 +1000,7 @@ export function Detail({
                 </Chip>
               )}
               {!STANDALONE && change.foundByAi && <Chip inline tone="gray">PR에서 찾음</Chip>}
-              {change.issueStatus === '완료' && <Chip inline tone="green">{STANDALONE ? '완료된 이슈' : '이슈 완료'}</Chip>}
+              {change.issueStatus === '완료' && (!STANDALONE || SHOW_DONE_ISSUE_CHIP) && <Chip inline tone="green">{STANDALONE ? '완료된 이슈' : '이슈 완료'}</Chip>}
             </>
           ) : (
             <>

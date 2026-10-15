@@ -81,6 +81,9 @@ function CliSourceChips({ change }: { change: DecisionChange }) {
   );
 }
 
+/** 목록 줄의 "(완료된 이슈)" 문구. 이슈 카드의 [완료] 칩으로 대신해서 숨겼어요. 다시 쓰려면 true. (대체 버전) */
+const SHOW_DONE_ISSUE_TEXT = false;
+
 /** 이전 값이 없으면 "새 결정 사항", 이슈가 완료일 때만 "이슈 완료" */
 function CliTags({ change }: { change: DecisionChange }) {
   return (
@@ -108,7 +111,7 @@ function CliMeta({ change }: { change: DecisionChange }) {
       {change.issueTitle && (
         <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           <Paragraph.Text typography="st12" color={grey}>
-            {`${STANDALONE ? '' : '· '}${change.issueTitle}${STANDALONE && change.issueStatus === '완료' ? ' (완료된 이슈)' : ''}`}
+            {`${STANDALONE ? '' : '· '}${change.issueTitle}${STANDALONE && SHOW_DONE_ISSUE_TEXT && change.issueStatus === '완료' ? ' (완료된 이슈)' : ''}`}
           </Paragraph.Text>
         </div>
       )}
