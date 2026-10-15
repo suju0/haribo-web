@@ -205,7 +205,15 @@ function ChangeLine({ change, muted }: { change: DecisionChange; muted?: boolean
   const cli = useCli();
   const line = (
     <Paragraph.Text typography="t7" color={muted ? adaptive.grey500 : adaptive.grey700}>
-      {`${change.before ?? (cli ? '새 결정 사항' : '이전 값 없음')} → ${change.after}`}
+      {STANDALONE ? (
+        // 대체 버전: 이전 값만 아주 연한 회색으로 흐리게
+        <>
+          <span style={{ color: adaptive.grey400 }}>{change.before ?? (cli ? '새 결정 사항' : '이전 값 없음')}</span>
+          {` → ${change.after}`}
+        </>
+      ) : (
+        `${change.before ?? (cli ? '새 결정 사항' : '이전 값 없음')} → ${change.after}`
+      )}
     </Paragraph.Text>
   );
   if (!change.revertedTo) return line;
