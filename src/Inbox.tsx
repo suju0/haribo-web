@@ -89,20 +89,20 @@ function CliTags({ change }: { change: DecisionChange }) {
 function CliMeta({ change }: { change: DecisionChange }) {
   const grey = adaptive.grey500;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, color: grey }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: STANDALONE ? 8 : 4, minWidth: 0, color: grey }}>
       <Paragraph.Text typography="st12" color={grey}>
         {`#${change.issueNo}`}
       </Paragraph.Text>
       {change.issueTitle && (
         <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           <Paragraph.Text typography="st12" color={grey}>
-            {`· ${change.issueTitle}${STANDALONE && change.issueStatus === '완료' ? ' (완료된 이슈)' : ''}`}
+            {`${STANDALONE ? '' : '· '}${change.issueTitle}${STANDALONE && change.issueStatus === '완료' ? ' (완료된 이슈)' : ''}`}
           </Paragraph.Text>
         </div>
       )}
       <div style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
         <Paragraph.Text typography="st12" color={grey}>
-          {`· ${change.author} · ${formatWhen(change.timestamp)}`}
+          {STANDALONE ? `${change.author} ${formatWhen(change.timestamp)}` : `· ${change.author} · ${formatWhen(change.timestamp)}`}
         </Paragraph.Text>
       </div>
     </div>
