@@ -23,6 +23,7 @@ import {
   relTime,
   reviewStatus,
   sortChanges,
+  PROGRESS_LABEL,
   taskProgress,
 } from './data';
 import { BlueFillChipWeight, Chip, ChipTone, FilterTabs, IconBellOff, IconClose, IconSparkle, ToggleSwitch } from './design';
@@ -415,7 +416,7 @@ function DoneRow({
           superseded ? undefined : (
             <div style={{ width: 80, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
               <Paragraph.Text typography="t7" fontWeight="medium" color={adaptive.blue500}>
-                {STANDALONE ? (cli ? `${miniStep}/3 ${miniStep === 3 ? '작업 반영' : '확인 완료'}` : `작업 ${handled}/${total} 답함`) : `${handled}/${total} 처리`}
+                {STANDALONE ? (cli ? `${miniStep}/3 ${miniStep === 3 ? PROGRESS_LABEL.applied : '확인 완료'}` : `작업 ${handled}/${total} 답함`) : `${handled}/${total} 처리`}
               </Paragraph.Text>
               <div style={{ width: 80 }}>
                 <ProgressBar progress={STANDALONE && cli ? miniStep / 3 : total === 0 ? 0 : handled / total} size="light" />

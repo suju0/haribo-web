@@ -88,7 +88,7 @@ export function useBoard(
       t.state === 'accepted' && (t.owner === role || t.name.startsWith(`${role} /`)) ? { ...t, progress, workDone: progress === 'done' } : t
     );
     update(selected.id, { affectedTasks: tasks });
-    toast(`내 작업 상태를 ${PROGRESS_LABEL[progress]}(으)로 바꿨어요.`);
+    toast(`상태를 바꿨어요 · ${PROGRESS_LABEL[progress]}`);
   };
 
   const reply = (kind: 'question' | 'request', text: string) => {

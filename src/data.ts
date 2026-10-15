@@ -1,3 +1,4 @@
+import { STANDALONE } from './copy';
 /** Decision Change (MD §9) */
 export type Status = 'NEW' | 'VIEWED' | 'ACKNOWLEDGED' | 'ACTIONED' | 'RESOLVED';
 export type Importance = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -33,7 +34,7 @@ export interface AffectedTask {
 /** 작업 진행 상태: 확인 완료(답한 직후 기본) → 작업 반영 → 처리 완료 */
 export type TaskProgress = 'ack' | 'applied' | 'done';
 export const PROGRESS_ORDER: TaskProgress[] = ['ack', 'applied', 'done'];
-export const PROGRESS_LABEL: Record<TaskProgress, string> = { ack: '확인 완료', applied: '작업 반영', done: '처리 완료' };
+export const PROGRESS_LABEL: Record<TaskProgress, string> = { ack: '확인 완료', applied: STANDALONE ? '이슈 반영' : '작업 반영', done: '처리 완료' };
 export const taskProgress = (t: AffectedTask): TaskProgress => t.progress ?? (t.workDone ? 'done' : 'ack');
 
 /** 답하기: 관계있다/관계없다 → (관계있다면) 알았다/몰랐다, (관계없다면) 이유 */
@@ -376,14 +377,14 @@ export const STATUS_LABEL: Record<Status, string> = {
   NEW: '새 변경',
   VIEWED: '열어봄',
   ACKNOWLEDGED: '확인 완료',
-  ACTIONED: '작업 반영',
+  ACTIONED: STANDALONE ? '이슈 반영' : '작업 반영',
   RESOLVED: '처리 완료',
 };
 export const STATUS_DESC: Record<Status, string> = {
   NEW: '아직 확인하지 않은 변경이에요.',
   VIEWED: '변경 내용을 열어본 상태예요.',
   ACKNOWLEDGED: '담당자가 변경사항을 확인했다고 답한 상태예요.',
-  ACTIONED: '실제 작업에 반영한 상태예요.',
+  ACTIONED: STANDALONE ? '실제 이슈에 반영한 상태예요.' : '실제 작업에 반영한 상태예요.',
   RESOLVED: '관련 작업이 모두 처리되었어요.',
 };
 export const IMPORTANCE_LABEL: Record<Importance, string> = {

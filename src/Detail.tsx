@@ -421,7 +421,7 @@ function RelationFlow({
               <span style={{ pointerEvents: 'none', display: 'inline-flex' }}>
                 <TaskCheck state={applied ? 'mine' : 'pending'} />
               </span>
-              <span style={{ fontSize: 13, fontWeight: 500, lineHeight: '19.5px', color: applied ? adaptive.blue700 : adaptive.grey700 }}>작업 반영했어요</span>
+              <span style={{ fontSize: 13, fontWeight: 500, lineHeight: '19.5px', color: applied ? adaptive.blue700 : adaptive.grey700 }}>이슈에 반영했어요</span>
             </button>
           )}
         </div>
