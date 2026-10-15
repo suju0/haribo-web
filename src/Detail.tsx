@@ -459,7 +459,7 @@ function RelationFlow({
 
   return (
     <div>
-      {question('이 변경이 내 작업과 관계있나요?')}
+      {question(STANDALONE ? '이 변경이 내 이슈와 관계가 있나요?' : '이 변경이 내 작업과 관계있나요?')}
       <div style={{ display: 'flex', gap: 8 }}>
         {(['관계있다', '관계없다'] as const).map((v) => (
           <Button
