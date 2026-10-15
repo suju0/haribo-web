@@ -60,6 +60,12 @@ const CHIP_ROW_H = 24;
  *  숨기는 동안에는 내 작업만 "이슈 카드" 안에 보여요. */
 const SHOW_TASK_TABLE = false;
 
+/** 이슈 카드 줄 앞의 작업 코드(T-37 등). 숨겼어요. 다시 쓰려면 true. (대체 버전) */
+const SHOW_TASK_CODE = false;
+
+/** 결정 사항 ID 표기: RULE-COUPON-STACK → rule.coupon.stack (대체 버전) */
+const displayKey = (key: string) => (STANDALONE ? key.toLowerCase().replace(/-/g, '.') : key);
+
 /** 제목 아래 "내 답이 필요한 변경이에요. 아래에서 답해주세요" 버튼. 잠시 숨겼어요. 다시 쓰려면 true. (대체 버전) */
 const SHOW_ANSWER_NEEDED_BUTTON = false;
 
@@ -201,12 +207,16 @@ function DecisionIssueCard({
           <Paragraph.Text typography="t7" fontWeight="bold" color={adaptive.grey900}>
             {label}
           </Paragraph.Text>
-          <Paragraph.Text typography="t7" color={adaptive.grey400}>
-            |
-          </Paragraph.Text>
-          <Paragraph.Text typography="t7" color={adaptive.grey600}>
-            {desc}
-          </Paragraph.Text>
+          {desc && (
+            <>
+              <Paragraph.Text typography="t7" color={adaptive.grey400}>
+                |
+              </Paragraph.Text>
+              <Paragraph.Text typography="t7" color={adaptive.grey600}>
+                {desc}
+              </Paragraph.Text>
+            </>
+          )}
           {extra}
         </div>
         {between}
@@ -261,13 +271,14 @@ function DecisionIssueCard({
                   <div style={{ height: CHIP_ROW_H, display: 'flex', alignItems: 'center' }}>
                     <TaskCheck state={taskCheckState(t, viewerRole)} />
                   </div>,
-                  taskNo(change, i),
-                  taskTitle(t),
+                  // 작업 코드(T-37)는 숨겼어요(SHOW_TASK_CODE). 줄은 "작업 이름 | 결정 사항 ID rule.coupon.stack" 이에요.
+                  SHOW_TASK_CODE ? taskNo(change, i) : taskTitle(t),
+                  SHOW_TASK_CODE ? taskTitle(t) : change.decisionKey ? `결정 사항 ID ${displayKey(change.decisionKey)}` : '',
                   change.issueTitle!,
                   <>
-                    {change.decisionKey && (
+                    {SHOW_TASK_CODE && change.decisionKey && (
                       <Paragraph.Text typography="t7" color={adaptive.grey500}>
-                        {`· 결정 사항 ID ${change.decisionKey}`}
+                        {`· 결정 사항 ID ${displayKey(change.decisionKey)}`}
                       </Paragraph.Text>
                     )}
                     {chipPos === 'title' ? small : null}
@@ -858,7 +869,7 @@ export function Detail({
   // 대체 버전 CLI 탭: 현재 상태는 3단계. 답하면 "확인 완료", "작업 반영했어요"를 누르면 "작업 반영"
   const inCard = STANDALONE && cli && !SHOW_TASK_TABLE && !!change.issueTitle && myTasks.length > 0;
   const cardMeta = `${change.author} · ${formatWhen(change.timestamp)}`;
-  const plainMeta = `${cardMeta}${change.decisionKey ? ` · 결정 사항 ID ${change.decisionKey}` : ''}`;
+  const plainMeta = `${cardMeta}${change.decisionKey ? ` · 결정 사항 ID ${displayKey(change.decisionKey)}` : ''}`;
   const simpleFlow = STANDALONE && cli;
   const stepFlow = simpleFlow ? STATUS_FLOW_SIMPLE : STATUS_FLOW;
   const currentIdx = simpleFlow
